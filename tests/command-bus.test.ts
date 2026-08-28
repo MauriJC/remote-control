@@ -94,3 +94,8 @@ describe("CommandBus", () => {
     expect(playCalls).toBe(1);
   });
 });
+
+/**
+ * TODO:
+ *  Considerate the case of promise rejection. What will happen to a duplicate rejected command?
+ */
