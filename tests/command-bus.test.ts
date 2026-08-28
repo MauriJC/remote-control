@@ -41,4 +41,56 @@ describe("CommandBus", () => {
     // El bus soltó el carril: ahora sí pause.
     expect(pauseCalls).toBe(1);
   });
+
+  it("a command with the same id should be processed once", async () => {
+    let playCalls = 0;
+    const adapter: PlayerAdapter = {
+      play: async () => {
+        playCalls++;
+      },
+      pause: async () => {},
+    };
+
+    const bus = new CommandBus(adapter);
+    const playAckA = bus.dispatch({ type: "command", id: "a", name: "play" });
+    const playAckB = bus.dispatch({ type: "command", id: "a", name: "play" });
+
+    await playAckA;
+    await playAckB;
+    expect(playCalls).toBe(1);
+    expect(playAckA).toBe(playAckB);
+  });
+
+  it("keeps the duplicate id waiting until the original command finishes", async () => {
+    const playGate = deferred();
+    let playCalls = 0;
+    const adapter: PlayerAdapter = {
+      play: () => {
+        playCalls += 1;
+        return playGate.promise;
+      },
+      pause: async () => {},
+    };
+
+    const bus = new CommandBus(adapter);
+    const playAckA = bus.dispatch({ type: "command", id: "a", name: "play" });
+    const playAckB = bus.dispatch({ type: "command", id: "a", name: "play" });
+
+    expect(playAckA).toBe(playAckB);
+    expect(playCalls).toBe(1);
+
+    let duplicateSettled = false;
+    void playAckB.then(() => {
+      // This then is executed when the duplicate command finishes. If the promise was resolved, the duplicate command would have been executed incorrectly
+      duplicateSettled = true;
+    });
+    await Promise.resolve();
+    expect(duplicateSettled).toBe(false);
+
+    playGate.resolve();
+    await playAckA;
+    await playAckB;
+    expect(duplicateSettled).toBe(true);
+    expect(playCalls).toBe(1);
+  });
 });

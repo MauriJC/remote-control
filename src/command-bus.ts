@@ -11,6 +11,7 @@ type QueuedCommand = {
 export class CommandBus {
   private readonly queue: QueuedCommand[] = [];
   private running = false;
+  private readonly commands = new Map<string, Promise<void>>();
 
   constructor(private readonly adapter: PlayerAdapter) {}
 
@@ -19,16 +20,22 @@ export class CommandBus {
     id: string;
     name: "play" | "pause";
   }): Promise<void> {
-    return new Promise((resolve) => {
+    const existing = this.commands.get(command.id);
+    if (existing) {
+      return existing;
+    }
+
+    const promise = new Promise<void>((resolve) => {
       this.queue.push({
         run: () =>
-          command.name === "play"
-            ? this.adapter.play()
-            : this.adapter.pause(),
+          command.name === "play" ? this.adapter.play() : this.adapter.pause(),
         resolve,
       });
       void this.runNext();
     });
+
+    this.commands.set(command.id, promise);
+    return promise;
   }
 
   private async runNext(): Promise<void> {
