@@ -4,7 +4,7 @@ import { build } from "../src/http.js";
 
 describe("HTTP", () => {
   it("should return 200 OK", async () => {
-    const app = build();
+    const app = await build();
 
     const response = await app.inject({
       method: "GET",
