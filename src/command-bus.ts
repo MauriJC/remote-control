@@ -1,3 +1,5 @@
+import { Command } from "./protocol.js";
+
 export type PlayerAdapter = {
   play(): Promise<void>;
   pause(): Promise<void>;
@@ -15,11 +17,7 @@ export class CommandBus {
 
   constructor(private readonly adapter: PlayerAdapter) {}
 
-  dispatch(command: {
-    type: "command";
-    id: string;
-    name: "play" | "pause";
-  }): Promise<void> {
+  dispatch(command: Command): Promise<void> {
     const existing = this.commands.get(command.id);
     if (existing) {
       return existing;
