@@ -1,14 +1,12 @@
-"use strict";
-
 import fastify from "fastify";
 
-export function build(opts = {}) {
+function build(opts = {}) {
   const app = fastify(opts);
-  app.get("/health", async function (request, reply) {
-    return { status: "200" };
+  app.get("/health", async function () {
+    return { status: "ok" };
   });
 
   return app;
 }
 
-export default build;
+export { build };

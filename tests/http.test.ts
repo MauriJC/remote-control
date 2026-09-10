@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 
-// This will be created later
 import { build } from "../src/http.js";
 
 describe("HTTP", () => {
