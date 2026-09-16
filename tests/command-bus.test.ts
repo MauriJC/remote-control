@@ -119,6 +119,22 @@ describe("CommandBus", () => {
     expect(playError).toEqual(acKError);
     expect(pauseCalls).toBe(1);
   });
+
+  it("A well executed command should return { ok: true }", async () => {
+    const adapter: PlayerAdapter = {
+      play: async () => {
+        return Promise.resolve();
+      },
+      pause: async () => {
+        return Promise.resolve();
+      },
+    };
+    const bus = new CommandBus(adapter);
+    const playAck = bus.dispatch({ type: "command", id: "a", name: "play" });
+
+    const playResult = await playAck;
+    expect(playResult).toEqual({ ok: true });
+  });
 });
 
 /**
