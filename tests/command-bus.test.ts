@@ -93,6 +93,32 @@ describe("CommandBus", () => {
     expect(duplicateSettled).toBe(true);
     expect(playCalls).toBe(1);
   });
+
+  it("The next command should be executed after the previous one failed", async () => {
+    let pauseCalls = 0;
+    const acKError = { ok: false, error: "Play failed" };
+
+    // This mock simulates a player that fails to play
+    const adapter: PlayerAdapter = {
+      play: async () => {
+        throw new Error("Play failed");
+      },
+      pause: async () => {
+        pauseCalls += 1;
+      },
+    };
+
+    const bus = new CommandBus(adapter);
+
+    const playAck = bus.dispatch({ type: "command", id: "a", name: "play" }); // This command will fail.
+    const pauseAck = bus.dispatch({ type: "command", id: "b", name: "pause" }); // This command should be executed after the previous one failed.
+
+    const playError = await playAck;
+    await pauseAck;
+
+    expect(playError).toEqual(acKError);
+    expect(pauseCalls).toBe(1);
+  });
 });
 
 /**
