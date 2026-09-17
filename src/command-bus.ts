@@ -7,23 +7,26 @@ export type PlayerAdapter = {
 
 type QueuedCommand = {
   run: () => Promise<void>;
-  resolve: () => void;
+  resolve: (result: CommandResult) => void;
 };
+
+type CommandResult = { ok: true } | { ok: false; error: string };
+type CommandPromise = Promise<CommandResult>;
 
 export class CommandBus {
   private readonly queue: QueuedCommand[] = [];
   private running = false;
-  private readonly commands = new Map<string, Promise<void>>();
+  private readonly commands = new Map<string, CommandPromise>();
 
   constructor(private readonly adapter: PlayerAdapter) {}
 
-  dispatch(command: Command): Promise<void> {
+  dispatch(command: Command): CommandPromise {
     const existing = this.commands.get(command.id);
     if (existing) {
       return existing;
     }
 
-    const promise = new Promise<void>((resolve) => {
+    const promise = new Promise<CommandResult>((resolve) => {
       this.queue.push({
         run: () =>
           command.name === "play" ? this.adapter.play() : this.adapter.pause(),
@@ -47,9 +50,17 @@ export class CommandBus {
     }
 
     this.running = true;
-    await next.run();
-    next.resolve();
-    this.running = false;
+    try {
+      await next.run();
+      next.resolve({ ok: true });
+    } catch (error) {
+      next.resolve({
+        ok: false,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    } finally {
+      this.running = false;
+    }
     await this.runNext();
   }
 }
