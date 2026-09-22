@@ -1,6 +1,8 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { WebSocket } from "ws";
 import { build } from "../src/http.js";
+import type { PlayerAdapter } from "../src/command-bus.js";
+import type { Ack, Command } from "../src/protocol.js";
 
 const EXPECTED_TOKEN = "secret-token";
 
@@ -18,6 +20,16 @@ function portOf(app: {
 function waitForOpen(socket: WebSocket): Promise<void> {
   return new Promise((resolve, reject) => {
     socket.once("open", () => resolve()); // Estos son eventos del websocket, son estandar de la API de websocket
+    socket.once("error", reject);
+  });
+}
+
+/** Los mensajes llegan como Buffer: se pasan a texto y después a objeto. */
+function waitForMessage(socket: WebSocket): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    socket.once("message", (message) =>
+      resolve(JSON.parse(message.toString())),
+    );
     socket.once("error", reject);
   });
 }
@@ -54,6 +66,32 @@ describe("WebSocket gateway", () => {
     await waitForOpen(socket);
 
     expect(socket.readyState).toBe(WebSocket.OPEN);
+    socket.close();
+    await waitForClose(socket);
+    await app.close();
+  });
+
+  it("answers a command with an ack", async () => {
+    const adapter: PlayerAdapter = {
+      play: vi.fn().mockResolvedValue(undefined),
+      pause: vi.fn().mockResolvedValue(undefined),
+    };
+    const app = await build({ authToken: EXPECTED_TOKEN, adapter });
+    await app.listen({ port: 0, host: "127.0.0.1" });
+    const socket = new WebSocket(
+      `ws://127.0.0.1:${portOf(app)}/ws?token=${EXPECTED_TOKEN}`,
+    );
+    await waitForOpen(socket);
+
+    const command: Command = { type: "command", id: "cmd-1", name: "play" };
+    const reply = waitForMessage(socket);
+    socket.send(JSON.stringify(command));
+    const ack = await reply;
+
+    const expectedAck: Ack = { type: "ack", id: command.id, ok: true };
+    expect(ack).toEqual(expectedAck);
+    expect(adapter.play).toHaveBeenCalledOnce();
+
     socket.close();
     await waitForClose(socket);
     await app.close();

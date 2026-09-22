@@ -4,6 +4,13 @@ export type Command = {
   name: "play" | "pause";
 };
 
+export type Ack = {
+  type: "ack";
+  id: string;
+  ok: boolean;
+  error?: string;
+};
+
 export const parseWatchUrl = (url: string) => {
   const urlObj = new URL(url);
   const searchParams = urlObj.searchParams;
