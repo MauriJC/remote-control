@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 import { WebSocket } from "ws";
 import { build } from "../src/http.js";
-import type { PlayerAdapter } from "../src/command-bus.js";
 import type { Ack, Command } from "../src/protocol.js";
+import { createFakeAdapter } from "./helpers/fake-adapter.js";
 
 const EXPECTED_TOKEN = "secret-token";
 
@@ -46,7 +46,10 @@ function waitForClose(socket: WebSocket): Promise<void> {
 
 describe("WebSocket gateway", () => {
   it("closes the socket when the token is missing or wrong", async () => {
-    const app = await build({ authToken: EXPECTED_TOKEN });
+    const app = await build({
+      authToken: EXPECTED_TOKEN,
+      adapter: createFakeAdapter(),
+    });
     await app.listen({ port: 0, host: "127.0.0.1" });
 
     const socket = new WebSocket(`ws://127.0.0.1:${portOf(app)}/ws`);
@@ -57,7 +60,10 @@ describe("WebSocket gateway", () => {
   });
 
   it("keeps the socket open when the token matches", async () => {
-    const app = await build({ authToken: EXPECTED_TOKEN });
+    const app = await build({
+      authToken: EXPECTED_TOKEN,
+      adapter: createFakeAdapter(),
+    });
     await app.listen({ port: 0, host: "127.0.0.1" });
 
     const socket = new WebSocket(
@@ -71,11 +77,8 @@ describe("WebSocket gateway", () => {
     await app.close();
   });
 
-  it("answers a command with an ack", async () => {
-    const adapter: PlayerAdapter = {
-      play: vi.fn().mockResolvedValue(undefined),
-      pause: vi.fn().mockResolvedValue(undefined),
-    };
+  it("answers a command with a successfull ack", async () => {
+    const adapter = createFakeAdapter();
     const app = await build({ authToken: EXPECTED_TOKEN, adapter });
     await app.listen({ port: 0, host: "127.0.0.1" });
     const socket = new WebSocket(
@@ -91,6 +94,61 @@ describe("WebSocket gateway", () => {
     const expectedAck: Ack = { type: "ack", id: command.id, ok: true };
     expect(ack).toEqual(expectedAck);
     expect(adapter.play).toHaveBeenCalledOnce();
+
+    socket.close();
+    await waitForClose(socket);
+    await app.close();
+  });
+
+  it("answers a command with a successfull ack", async () => {
+    const adapter = createFakeAdapter();
+    const app = await build({ authToken: EXPECTED_TOKEN, adapter });
+    await app.listen({ port: 0, host: "127.0.0.1" });
+    const socket = new WebSocket(
+      `ws://127.0.0.1:${portOf(app)}/ws?token=${EXPECTED_TOKEN}`,
+    );
+    await waitForOpen(socket);
+
+    const command: Command = { type: "command", id: "cmd-1", name: "play" };
+    const reply = waitForMessage(socket);
+    socket.send(JSON.stringify(command));
+    const ack = await reply;
+
+    const expectedAck: Ack = { type: "ack", id: command.id, ok: true };
+    expect(ack).toEqual(expectedAck);
+    expect(adapter.play).toHaveBeenCalledOnce();
+
+    socket.close();
+    await waitForClose(socket);
+    await app.close();
+  });
+
+  it("answers a command with an error ack", async () => {
+    const adapter = createFakeAdapter();
+    adapter.play = vi
+      .fn()
+      .mockRejectedValue(new Error("Player exploded unexpectedly"));
+    const app = await build({ authToken: EXPECTED_TOKEN, adapter });
+    await app.listen({ port: 0, host: "127.0.0.1" });
+    const socket = new WebSocket(
+      `ws://127.0.0.1:${portOf(app)}/ws?token=${EXPECTED_TOKEN}`,
+    );
+    await waitForOpen(socket);
+
+    const command: Command = { type: "command", id: "cmd-1", name: "play" };
+    const reply = waitForMessage(socket);
+    socket.send(JSON.stringify(command));
+    const ack = await reply;
+
+    const expectedAck: Ack = {
+      type: "ack",
+      id: command.id,
+      ok: false,
+      error: "Player exploded unexpectedly",
+    };
+    expect(ack).toEqual(expectedAck);
+    expect(adapter.play).toHaveBeenCalledOnce();
+    expect(socket.readyState).toBe(socket.OPEN);
 
     socket.close();
     await waitForClose(socket);
