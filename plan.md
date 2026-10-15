@@ -243,7 +243,7 @@ Cada etapa termina en algo que se puede usar o demostrar. No se arranca la sigui
 - [ ] Tests primero: `inject` de `/health`; WS sin token rechaza; con token acepta; `play` contra FakeAdapter → `ack` + `state`; dos clientes reciben el mismo broadcast.
 - [ ] HTTP sirve `web/dist`; `GET /health`.
 - [ ] `FakeAdapter`: play/pause/seek/volume/playVideo mutan estado en RAM.
-- [ ] PWA: token, botones, URL, muestra `PlayerState`. Lógica WS en `web/remote-client.ts` con tests de backoff (fake timers).
+- [ ] PWA: token, botones, URL, muestra `PlayerState`. Lógica WS en `web/remote-client.ts`. Sin reconexión (pasa a la etapa 7).
 - [ ] Criterio de hecho: `npm test` verde + desde el teléfono, play/pause cambian el estado simulado. Dos pestañas ven lo mismo.
 - [ ] Commit: `feat: add LAN websocket PWA with fake player`
 
@@ -310,7 +310,7 @@ Cada etapa termina en algo que se puede usar o demostrar. No se arranca la sigui
 
 **Files:** `[src/command-bus.ts](src/command-bus.ts)`, `[src/ws-gateway.ts](src/ws-gateway.ts)`, `[src/youtube-adapter.ts](src/youtube-adapter.ts)`, `[web/](web/)`
 
-- [ ] Tests: reconnect PWA reenvía comandos no-ack; `id` duplicado no reejecuta; fixture con `adPlaying`; player ausente → `state.error`.
+- [ ] Tests: reconnect PWA con backoff (fake timers) y reenvío de comandos no-ack; `id` duplicado no reejecuta; JSON mal formado o comando desconocido no tiran el gateway; fixture con `adPlaying`; player ausente → `state.error`.
 - [ ] Reconnect PWA con backoff; reenviar comandos no-ack; ids idempotentes.
 - [ ] `adPlaying` en el estado; no mentir si uBlock pierde.
 - [ ] Error accionable: “hay un diálogo en la netbook” (consent/age). Login de Google sigue siendo manual.
