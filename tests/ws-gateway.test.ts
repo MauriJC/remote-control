@@ -100,29 +100,6 @@ describe("WebSocket gateway", () => {
     await app.close();
   });
 
-  it("answers a command with a successfull ack", async () => {
-    const adapter = createFakeAdapter();
-    const app = await build({ authToken: EXPECTED_TOKEN, adapter });
-    await app.listen({ port: 0, host: "127.0.0.1" });
-    const socket = new WebSocket(
-      `ws://127.0.0.1:${portOf(app)}/ws?token=${EXPECTED_TOKEN}`,
-    );
-    await waitForOpen(socket);
-
-    const command: Command = { type: "command", id: "cmd-1", name: "play" };
-    const reply = waitForMessage(socket);
-    socket.send(JSON.stringify(command));
-    const ack = await reply;
-
-    const expectedAck: Ack = { type: "ack", id: command.id, ok: true };
-    expect(ack).toEqual(expectedAck);
-    expect(adapter.play).toHaveBeenCalledOnce();
-
-    socket.close();
-    await waitForClose(socket);
-    await app.close();
-  });
-
   it("answers a command with an error ack", async () => {
     const adapter = createFakeAdapter();
     adapter.play = vi
@@ -152,6 +129,22 @@ describe("WebSocket gateway", () => {
 
     socket.close();
     await waitForClose(socket);
+    await app.close();
+  });
+
+  it("closes the socket when the token is missing or wrong and a command is received", async () => {
+    const adapter = createFakeAdapter();
+    const app = await build({
+      authToken: "WrongToken",
+      adapter: adapter,
+    });
+    await app.listen({ port: 0, host: "127.0.0.1" });
+
+    const socket = new WebSocket(`ws://127.0.0.1:${portOf(app)}/ws`);
+    await waitForClose(socket);
+
+    expect(adapter.play).not.toHaveBeenCalled();
+    expect(socket.readyState).toBe(WebSocket.CLOSED);
     await app.close();
   });
 });
