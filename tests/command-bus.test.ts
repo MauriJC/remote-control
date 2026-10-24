@@ -1,6 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { CommandBus } from "../src/command-bus.js";
 import type { PlayerAdapter } from "../src/command-bus.js";
+import { emptyPlayerState } from "../src/protocol.js";
+
+const stubReadState = () => emptyPlayerState();
 
 /** Promise que no termina hasta que llames a resolve(). */
 function deferred() {
@@ -22,6 +25,7 @@ describe("CommandBus", () => {
       pause: async () => {
         pauseCalls += 1;
       },
+      readState: stubReadState,
     };
 
     const bus = new CommandBus(adapter);
@@ -49,6 +53,7 @@ describe("CommandBus", () => {
         playCalls++;
       },
       pause: async () => {},
+      readState: stubReadState,
     };
 
     const bus = new CommandBus(adapter);
@@ -70,6 +75,7 @@ describe("CommandBus", () => {
         return playGate.promise;
       },
       pause: async () => {},
+      readState: stubReadState,
     };
 
     const bus = new CommandBus(adapter);
@@ -106,6 +112,7 @@ describe("CommandBus", () => {
       pause: async () => {
         pauseCalls += 1;
       },
+      readState: stubReadState,
     };
 
     const bus = new CommandBus(adapter);
@@ -128,6 +135,7 @@ describe("CommandBus", () => {
       pause: async () => {
         return Promise.resolve();
       },
+      readState: stubReadState,
     };
     const bus = new CommandBus(adapter);
     const playAck = bus.dispatch({ type: "command", id: "a", name: "play" });

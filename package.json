@@ -7,7 +7,10 @@
     "test": "vitest run",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:web": "vite build --config web/vite.config.ts",
+    "start": "tsx src/index.ts",
+    "dev:web": "vite --config web/vite.config.ts"
   },
   "keywords": [],
   "author": "",

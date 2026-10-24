@@ -3,6 +3,7 @@ import { WebSocket } from "ws";
 import { build } from "../src/http.js";
 import type { Ack, Command } from "../src/protocol.js";
 import { createFakeAdapter } from "./helpers/fake-adapter.js";
+import { FakeAdapter } from "../src/fake-adapter.js";
 
 const EXPECTED_TOKEN = "secret-token";
 
@@ -129,6 +130,39 @@ describe("WebSocket gateway", () => {
 
     socket.close();
     await waitForClose(socket);
+    await app.close();
+  });
+
+  it("broadcasts state to all connected clients after a successful play", async () => {
+    const adapter = new FakeAdapter();
+    const app = await build({ authToken: EXPECTED_TOKEN, adapter });
+    await app.listen({ port: 0, host: "127.0.0.1" });
+
+    const socket1 = new WebSocket(
+      `ws://127.0.0.1:${portOf(app)}/ws?token=${EXPECTED_TOKEN}`,
+    );
+    const socket2 = new WebSocket(
+      `ws://127.0.0.1:${portOf(app)}/ws?token=${EXPECTED_TOKEN}`,
+    );
+    await waitForOpen(socket1);
+    await waitForOpen(socket2);
+
+    const stateOnB = waitForMessage(socket2);
+    const command: Command = { type: "command", id: "cmd-broadcast", name: "play" };
+    const ackOnA = waitForMessage(socket1);
+    socket1.send(JSON.stringify(command));
+
+    const ack = (await ackOnA) as Ack;
+    expect(ack).toEqual({ type: "ack", id: command.id, ok: true });
+
+    const state = (await stateOnB) as { type: string; playing: boolean };
+    expect(state.type).toBe("state");
+    expect(state.playing).toBe(true);
+
+    socket1.close();
+    socket2.close();
+    await waitForClose(socket1);
+    await waitForClose(socket2);
     await app.close();
   });
 

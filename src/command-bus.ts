@@ -1,8 +1,9 @@
-import { Command } from "./protocol.js";
+import { Command, type PlayerState } from "./protocol.js";
 
 export type PlayerAdapter = {
   play(): Promise<void>;
   pause(): Promise<void>;
+  readState(): PlayerState;
 };
 
 type QueuedCommand = {

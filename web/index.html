@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Remote Control</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main>
+      <h1>YouTube Remote</h1>
+      <p id="status" class="status">Disconnected</p>
+
+      <label>
+        Auth token
+        <input id="token" type="password" autocomplete="off" />
+      </label>
+
+      <div class="controls">
+        <button id="connect" type="button">Connect</button>
+        <button id="play" type="button" disabled>Play</button>
+        <button id="pause" type="button" disabled>Pause</button>
+      </div>
+
+      <pre id="state" aria-live="polite">{}</pre>
+    </main>
+    <script type="module" src="/main.ts"></script>
+  </body>
+</html>
