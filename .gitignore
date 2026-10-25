@@ -3,3 +3,7 @@
 .env
 scratch.ts
 /data/
+
+# Extensiones desempaquetadas (licencias / no redistribuir)
+/extensions/*
+!/extensions/README.md
