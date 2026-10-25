@@ -21,7 +21,7 @@ En Mint/XFCE (VGA):
 
 ```bash
 ./scripts/setup-display.sh
-# Copiá extensiones a extensions/ (ver extensions/README.md)
+# Extensiones: uBO Lite desde https://github.com/uBlockOrigin/uBOL-home/releases (ver extensions/README.md)
 LAUNCH_BROWSER=true pnpm start
 ```
 
