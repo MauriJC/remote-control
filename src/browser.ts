@@ -6,6 +6,8 @@ export type TvBrowserOptions = {
   userDataDir: string;
   extensionPaths: string[];
   startUrl?: string;
+  /** Playwright channel: `chrome` or `msedge` for Web Store; omit for bundled Chromium. */
+  browserChannel?: string;
 };
 
 /** Headed Chromium on the TV monitor; profile and extensions persist in userDataDir. */
@@ -29,11 +31,31 @@ export async function launchTvBrowser(
     );
   }
 
-  const context = await chromium.launchPersistentContext(opts.userDataDir, {
+  const launchOptions: Parameters<typeof chromium.launchPersistentContext>[1] = {
     headless: false,
     args,
     viewport: null,
-  });
+  };
+
+  if (opts.browserChannel) {
+    launchOptions.channel = opts.browserChannel;
+    console.log(`Using installed browser channel: ${opts.browserChannel}`);
+  } else {
+    console.log(
+      "Using Playwright Chromium (not Google Chrome).",
+    );
+    if (extensions.length === 0) {
+      console.warn(
+        "Manual installs (chrome://extensions) do NOT persist here — the list stays empty. " +
+          "Use extensions/ + LOAD_EXTENSIONS=true, or BROWSER_CHANNEL=chrome for a normal profile.",
+      );
+    }
+  }
+
+  const context = await chromium.launchPersistentContext(
+    opts.userDataDir,
+    launchOptions,
+  );
 
   const pages = context.pages();
   const page = pages[0] ?? (await context.newPage());

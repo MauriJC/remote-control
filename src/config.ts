@@ -16,6 +16,10 @@ export const config = {
   launchBrowser,
   browserStartUrl: process.env.BROWSER_START_URL ?? "https://www.youtube.com",
   extensionPaths: process.env.EXTENSION_PATHS,
+  /** Opt-in: uBO via --load-extension breaks YouTube ~40s on Playwright Chromium (see extensions/README). */
+  loadExtensions: process.env.LOAD_EXTENSIONS === "true",
+  /** Installed browser: chrome | msedge | chromium (default). Store installs need chrome/msedge. */
+  browserChannel: process.env.BROWSER_CHANNEL?.trim() || undefined,
   projectRoot,
   /** fake = RAM simulator; youtube = read state from Chromium (Etapa 3+) */
   playerMode:

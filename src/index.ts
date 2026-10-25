@@ -23,10 +23,27 @@ if (config.launchBrowser) {
     config.projectRoot,
     config.extensionPaths,
   );
+  const extensionPaths = config.loadExtensions ? extensions : [];
+  if (!config.loadExtensions && extensions.length > 0) {
+    console.log(
+      "LOAD_EXTENSIONS not set — skipping extensions/ (stable YouTube playback).",
+    );
+  }
+  if (
+    config.playerMode === "youtube" &&
+    config.loadExtensions &&
+    extensions.length > 0
+  ) {
+    console.warn(
+      "YouTube + LOAD_EXTENSIONS=true: uBO Lite often kills playback at ~40–45s " +
+        "(ERR_BLOCKED_BY_CLIENT). Use LOAD_EXTENSIONS=false or BROWSER_CHANNEL=chrome with a tuned profile.",
+    );
+  }
   browserContext = await launchTvBrowser({
     userDataDir: config.userDataDir,
-    extensionPaths: extensions,
+    extensionPaths,
     startUrl: config.browserStartUrl,
+    browserChannel: config.browserChannel,
   });
   console.log("Chromium TV browser started (headed, persistent profile).");
 }

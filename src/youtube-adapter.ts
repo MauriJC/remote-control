@@ -23,7 +23,9 @@ export class YouTubeAdapter implements PlayerAdapter {
 
   async refreshState(): Promise<void> {
     try {
-      const result = await this.page.evaluate((): ReadResult => {
+      const result = await this.page.evaluate((): ReadResult & {
+        ytpErrorText?: string;
+      } => {
         const el = document.getElementById("movie_player") as
           | (HTMLElement & {
               getVideoData?: () => { video_id?: string; title?: string };
@@ -35,6 +37,11 @@ export class YouTubeAdapter implements PlayerAdapter {
               getPlayerState?: () => number;
             })
           | null;
+
+        const ytpError = document.querySelector(
+          ".ytp-error, .ytp-error-content, .html5-video-player.ytp-error",
+        );
+        const ytpErrorText = (ytpError?.textContent ?? "").trim().slice(0, 160);
 
         if (!el) {
           return { error: "movie_player not found on page" };
@@ -59,6 +66,7 @@ export class YouTubeAdapter implements PlayerAdapter {
           volume: el.isMuted?.() ? 0 : Math.round(el.getVolume?.() ?? 0),
           adPlaying: false,
           quality: el.getPlaybackQuality?.() ?? "",
+          ytpErrorText: ytpErrorText || undefined,
         };
       });
 
@@ -67,8 +75,13 @@ export class YouTubeAdapter implements PlayerAdapter {
         return;
       }
 
-      this.cache = result;
+      const { ytpErrorText, ...state } = result;
+      this.cache =
+        ytpErrorText && ytpErrorText.length > 0
+          ? { ...state, error: ytpErrorText }
+          : state;
     } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
       if (isTransientPageError(err)) {
         const { error: _prev, ...rest } = this.cache;
         this.cache = { ...rest, error: "Page is loading…" };
@@ -76,7 +89,7 @@ export class YouTubeAdapter implements PlayerAdapter {
       }
 
       this.cache = emptyPlayerState({
-        error: err instanceof Error ? err.message : String(err),
+        error: msg,
       });
     }
   }

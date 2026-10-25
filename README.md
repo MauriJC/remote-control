@@ -21,11 +21,12 @@ En Mint/XFCE (VGA):
 
 ```bash
 ./scripts/setup-display.sh
-# Extensiones: uBO Lite desde https://github.com/uBlockOrigin/uBOL-home/releases (ver extensions/README.md)
+# YouTube estable: NO cargar uBO en Playwright Chromium (ver extensions/README.md)
+# LOAD_EXTENSIONS=true  # solo si aceptás riesgo de error ~40s o usás Chrome real
 LAUNCH_BROWSER=true pnpm start
 ```
 
-Criterio: Chromium headed en el monitor, perfil en `USER_DATA_DIR`. Con `PLAYER_MODE=fake` la PWA controla el fake; con `youtube` (default si `LAUNCH_BROWSER=true`) lee estado del tab.
+Criterio: Chromium headed en el monitor, perfil en `USER_DATA_DIR`. **Sin `LOAD_EXTENSIONS=true`** el video aguanta reproducción larga; uBO vía flags suele cortar a ~40–45s.
 
 ## Etapa 3 — Estado live de YouTube
 

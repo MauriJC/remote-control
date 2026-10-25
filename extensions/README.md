@@ -4,7 +4,26 @@ Colocá acá extensiones **desempaquetadas**: cada una en **su propia subcarpeta
 
 **No se versionan en git** (tamaño y licencias). Ver `.gitignore`.
 
-## uBlock Origin Lite (MV3) — recomendado
+## Playwright Chromium vs Google Chrome
+
+El binario **Chromium de Playwright** (default, sin `BROWSER_CHANNEL`) **no es** el Chrome de tu PC:
+
+| Acción | Playwright Chromium | `BROWSER_CHANNEL=chrome` |
+|--------|---------------------|---------------------------|
+| Chrome Web Store | *La instalación no está habilitada* | Sí |
+| Cargar descomprimida en `chrome://extensions` | Suele decir “cargada” pero la **lista queda vacía** | Sí, persiste en el perfil |
+| uBO vía `extensions/` + `LOAD_EXTENSIONS=true` | **Sí** (forma soportada por Playwright) | También |
+
+Para uBO en el TV con Playwright, usá la carpeta `extensions/` abajo. Para instalar “como en el navegador de todos los días”, usá Chrome real.
+
+## Instalación manual (solo con Google Chrome)
+
+1. `.env`: `BROWSER_CHANNEL=chrome`, `LOAD_EXTENSIONS=false`, perfil aparte p. ej. `USER_DATA_DIR=./data/chrome-tv-profile`.
+2. `pnpm start` → ventana de **Google Chrome** (tenelo instalado).
+3. Store o `chrome://extensions` → Cargar descomprimida (uBO Lite).
+4. Afiná uBO en YouTube (modo **Óptimo**) y probá playback >2 min.
+
+## uBlock Origin Lite (MV3) — vía carpeta `extensions/`
 
 Playwright usa Chromium reciente, que **no carga** uBlock clásico (Manifest V2). Usá **uBO Lite**:
 
@@ -41,3 +60,19 @@ pnpm start
 ```
 
 En consola deberías ver: `Loading extensions: [ '...' ]`. Verificá en `chrome://extensions`.
+
+## Reproducción estable en YouTube (importante)
+
+**Confirmado:** uBO Lite cargada con **`LOAD_EXTENSIONS=true`** (`--load-extension`) en **Playwright Chromium** suele romper el video a **~40–45 s** (*“Se produjo un error…”*, `net::ERR_BLOCKED_BY_CLIENT`). El remote control **no** es la causa; el bloqueador corta requests que el player necesita.
+
+**Recomendado para control remoto + YouTube:**
+
+| Objetivo | Config |
+|----------|--------|
+| Playback largo estable | No pongas `LOAD_EXTENSIONS=true` (default del proyecto) |
+| uBO + Store / perfil normal | `BROWSER_CHANNEL=chrome`, perfil aparte, uBO en modo **Óptimo** en youtube.com |
+| Ads sin uBO en el TV | Premium, Pi-hole/DNS en la red, etc. |
+
+Ajustar el popup de uBO en un perfil Playwright **no** suele bastar: el fallo aparece igual con flags. Si insistís con uBO, probá **Chrome real** (`BROWSER_CHANNEL=chrome`), no el Chromium empaquetado de Playwright.
+
+Tras cambiar estrategia, a veces conviene borrar `USER_DATA_DIR` y empezar limpio.
