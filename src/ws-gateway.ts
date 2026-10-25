@@ -24,6 +24,10 @@ export async function registerWsGateway(
     }
   };
 
+  session.attachBroadcaster(() => {
+    broadcast(JSON.stringify(session.stateMessage()));
+  });
+
   app.get("/ws", { websocket: true }, (socket, request) => {
     const query = request.query as { token?: string };
     const received = query.token ?? "";

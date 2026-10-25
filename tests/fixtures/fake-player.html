@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Fake YouTube movie_player</title>
+  </head>
+  <body>
+    <div id="movie_player"></div>
+    <script>
+      (function () {
+        const player = document.getElementById("movie_player");
+        let playing = true;
+        let currentTime = 12;
+
+        Object.assign(player, {
+          getVideoData() {
+            return { video_id: "fake123", title: "Fixture Video" };
+          },
+          getDuration() {
+            return 180;
+          },
+          getCurrentTime() {
+            return currentTime;
+          },
+          getVolume() {
+            return 42;
+          },
+          isMuted() {
+            return false;
+          },
+          getPlaybackQuality() {
+            return "hd720";
+          },
+          getPlayerState() {
+            return playing ? 1 : 2;
+          },
+        });
+
+        window.__setPlaying = (value) => {
+          playing = value;
+        };
+        window.__setCurrentTime = (value) => {
+          currentTime = value;
+        };
+      })();
+    </script>
+  </body>
+</html>

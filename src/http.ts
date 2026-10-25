@@ -8,6 +8,7 @@ export async function build(opts: {
   authToken?: string;
   adapter: PlayerAdapter;
   staticRoot?: string;
+  enableStatePoll?: boolean;
 }) {
   const app = fastify();
   const bus = new CommandBus(opts.adapter);
@@ -25,5 +26,10 @@ export async function build(opts: {
   }
 
   await registerWsGateway(app, opts.authToken ?? "", bus, session);
-  return app;
+
+  if (opts.enableStatePoll) {
+    session.startPolling(1000);
+  }
+
+  return { app, session };
 }

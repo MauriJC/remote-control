@@ -47,7 +47,7 @@ function waitForClose(socket: WebSocket): Promise<void> {
 
 describe("WebSocket gateway", () => {
   it("closes the socket when the token is missing or wrong", async () => {
-    const app = await build({
+    const { app } = await build({
       authToken: EXPECTED_TOKEN,
       adapter: createFakeAdapter(),
     });
@@ -61,7 +61,7 @@ describe("WebSocket gateway", () => {
   });
 
   it("keeps the socket open when the token matches", async () => {
-    const app = await build({
+    const { app } = await build({
       authToken: EXPECTED_TOKEN,
       adapter: createFakeAdapter(),
     });
@@ -80,7 +80,7 @@ describe("WebSocket gateway", () => {
 
   it("answers a command with a successfull ack", async () => {
     const adapter = createFakeAdapter();
-    const app = await build({ authToken: EXPECTED_TOKEN, adapter });
+    const { app } = await build({ authToken: EXPECTED_TOKEN, adapter });
     await app.listen({ port: 0, host: "127.0.0.1" });
     const socket = new WebSocket(
       `ws://127.0.0.1:${portOf(app)}/ws?token=${EXPECTED_TOKEN}`,
@@ -106,7 +106,7 @@ describe("WebSocket gateway", () => {
     adapter.play = vi
       .fn()
       .mockRejectedValue(new Error("Player exploded unexpectedly"));
-    const app = await build({ authToken: EXPECTED_TOKEN, adapter });
+    const { app } = await build({ authToken: EXPECTED_TOKEN, adapter });
     await app.listen({ port: 0, host: "127.0.0.1" });
     const socket = new WebSocket(
       `ws://127.0.0.1:${portOf(app)}/ws?token=${EXPECTED_TOKEN}`,
@@ -135,7 +135,7 @@ describe("WebSocket gateway", () => {
 
   it("broadcasts state to all connected clients after a successful play", async () => {
     const adapter = new FakeAdapter();
-    const app = await build({ authToken: EXPECTED_TOKEN, adapter });
+    const { app } = await build({ authToken: EXPECTED_TOKEN, adapter });
     await app.listen({ port: 0, host: "127.0.0.1" });
 
     const socket1 = new WebSocket(
@@ -168,7 +168,7 @@ describe("WebSocket gateway", () => {
 
   it("closes the socket when the token is missing or wrong and a command is received", async () => {
     const adapter = createFakeAdapter();
-    const app = await build({
+    const { app } = await build({
       authToken: "WrongToken",
       adapter: adapter,
     });
