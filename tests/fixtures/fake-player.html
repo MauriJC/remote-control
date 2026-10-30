@@ -34,6 +34,12 @@
           getPlayerState() {
             return playing ? 1 : 2;
           },
+          playVideo() {
+            playing = true;
+          },
+          pauseVideo() {
+            playing = false;
+          },
         });
 
         window.__setPlaying = (value) => {

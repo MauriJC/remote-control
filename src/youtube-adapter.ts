@@ -100,29 +100,44 @@ export class YouTubeAdapter implements PlayerAdapter {
 
   /** Etapa 4: control real vía movie_player. */
   async play(): Promise<void> {
-    await this.runPlayerCommand(() => {
-      const el = document.getElementById("movie_player") as {
-        playVideo?: () => void;
-      } | null;
-      el?.playVideo?.();
-    });
+    await this.runPlayerCommand("playVideo");
     await this.refreshState();
   }
 
   async pause(): Promise<void> {
-    await this.runPlayerCommand(() => {
-      const el = document.getElementById("movie_player") as {
-        pauseVideo?: () => void;
-      } | null;
-      el?.pauseVideo?.();
-    });
+    await this.runPlayerCommand("pauseVideo");
     await this.refreshState();
   }
 
-  private async runPlayerCommand(fn: () => void): Promise<void> {
+  private async runPlayerCommand(
+    method: "playVideo" | "pauseVideo",
+  ): Promise<void> {
     try {
-      await this.page.evaluate(fn);
+      const ok = await this.page.evaluate((playerMethod) => {
+        const el = document.getElementById("movie_player") as {
+          playVideo?: () => void;
+          pauseVideo?: () => void;
+        } | null;
+        if (!el) {
+          return "movie_player not found on page";
+        }
+        const fn = el[playerMethod];
+        if (typeof fn !== "function") {
+          return "YouTube player API unavailable (open a watch page?)";
+        }
+        fn.call(el);
+        return null;
+      }, method);
+      if (ok) {
+        throw new Error(ok);
+      }
     } catch (err) {
+      if (err instanceof Error && err.message.includes("movie_player")) {
+        throw err;
+      }
+      if (err instanceof Error && err.message.includes("player API")) {
+        throw err;
+      }
       if (isTransientPageError(err)) {
         throw new Error("YouTube page is loading, try again");
       }

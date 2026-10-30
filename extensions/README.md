@@ -1,5 +1,11 @@
 # Extensiones para Chromium (netbook / Playwright)
 
+## Decisión de producto: sin adblock en el TV
+
+**uBO / adblock no es viable** con YouTube estable en Chromium (ni vía `LOAD_EXTENSIONS`, ni en perfil Chrome): el video suele cortar ~40–50 s. Para el control remoto priorizamos **playback largo** → **`LOAD_EXTENSIONS=false`** (default) y **sin bloqueadores en el navegador del TV**. Alternativas: YouTube Premium, bloqueo DNS en el router (Pi-hole, etc.).
+
+El resto de este doc queda como referencia técnica si probás extensiones (p. ej. h264ify); no es el camino recomendado para uBO.
+
 Colocá acá extensiones **desempaquetadas**: cada una en **su propia subcarpeta** con un `manifest.json` adentro. El proyecto detecta automáticamente todas las subcarpetas válidas bajo `extensions/`.
 
 **No se versionan en git** (tamaño y licencias). Ver `.gitignore`.

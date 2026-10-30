@@ -42,13 +42,25 @@ pnpm start
 
 Para seguir probando el fake sin YouTube: `PLAYER_MODE=fake` en `.env`.
 
+## Etapa 4 — Play / pause desde el teléfono
+
+Con `LAUNCH_BROWSER=true` y `PLAYER_MODE=youtube` (default al lanzar browser):
+
+1. Abrí un **video** en el Chromium del server (`watch?v=…`).
+2. Conectá la PWA con el token.
+3. **Play** / **Pause** en el celular → el video en el monitor debe responder; el estado en la PWA se actualiza (ack + poll).
+
+Sin adblock en el TV (ver [extensions/README.md](./extensions/README.md)).
+
 ## Roadmap
 
 | Etapa | Estado |
 |-------|--------|
 | 1 LAN + fake player | Hecho |
-| 2 Chromium + extensiones | Hecho |
+| 2 Chromium headed + perfil | Hecho |
 | 3 Leer estado YouTube | Hecho (poll 1s + fixture tests) |
-| 4 Play/pause real | Pendiente |
+| 4 Play/pause real | Hecho |
+| 5 Seek, volumen, fullscreen | Pendiente |
+| 6 Abrir video desde el teléfono + 480p | Pendiente |
 
 Detalle en [plan.md](./plan.md).

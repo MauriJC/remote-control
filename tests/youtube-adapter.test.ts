@@ -1,6 +1,14 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  vi,
+} from "vitest";
 import { chromium, type Browser, type Page } from "playwright";
 import { YouTubeAdapter } from "../src/youtube-adapter.js";
 
@@ -23,6 +31,14 @@ describe("YouTubeAdapter", () => {
   afterAll(async () => {
     await page.close();
     await browser.close();
+  });
+
+  beforeEach(async () => {
+    await page.evaluate(() => {
+      (window as unknown as { __setPlaying: (v: boolean) => void }).__setPlaying(
+        true,
+      );
+    });
   });
 
   it("reads title, playing and time from movie_player", async () => {
@@ -82,6 +98,26 @@ describe("YouTubeAdapter", () => {
     await adapter.refreshState();
     expect(adapter.readState().title).toBe("Held title");
     expect(adapter.readState().error).toMatch(/loading/i);
+  });
+
+  it("play() calls playVideo on the fixture player", async () => {
+    await page.evaluate(() => {
+      (window as unknown as { __setPlaying: (v: boolean) => void }).__setPlaying(
+        false,
+      );
+    });
+
+    const adapter = new YouTubeAdapter(page);
+    await adapter.play();
+
+    expect(adapter.readState().playing).toBe(true);
+  });
+
+  it("pause() calls pauseVideo on the fixture player", async () => {
+    const adapter = new YouTubeAdapter(page);
+    await adapter.pause();
+
+    expect(adapter.readState().playing).toBe(false);
   });
 
   it("sets error when movie_player is missing", async () => {
