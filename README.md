@@ -58,7 +58,7 @@ Con la PWA conectada y un video en reproducción:
 
 1. **Time** — arrastrá el slider y soltá; el player salta a ese segundo.
 2. **Volume** — slider 0–100 (desmutea si hace falta).
-3. **Fullscreen** — pantalla completa en el monitor (video o contenedor del player).
+3. **Fullscreen** — fullscreen **de YouTube** (botón del player / tecla `f`), no el API del `<video>` (evita recortes raros).
 
 Volvé a buildar la PWA tras cambios en `web/`: `pnpm build:web`.
 

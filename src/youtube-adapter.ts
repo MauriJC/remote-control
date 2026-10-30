@@ -188,19 +188,36 @@ export class YouTubeAdapter implements PlayerAdapter {
   async enterFullscreen(): Promise<void> {
     await this.withPage(async () => {
       try {
-        const err = await this.page.evaluate(async () => {
-          const video = document.querySelector(
-            "#movie_player video",
-          ) as HTMLVideoElement | null;
-          const target = video ?? document.getElementById("movie_player");
-          if (!target?.requestFullscreen) {
-            return "Fullscreen unavailable on this page";
+        const player = this.page.locator("#movie_player");
+        const box = await player.boundingBox();
+        if (box) {
+          await this.page.mouse.move(
+            box.x + box.width / 2,
+            box.y + box.height / 2,
+          );
+        }
+
+        const btn = this.page.locator(
+          "#movie_player .ytp-fullscreen-button",
+        );
+        if (await btn.isVisible().catch(() => false)) {
+          await btn.click();
+          return;
+        }
+
+        const err = await this.page.evaluate(() => {
+          const el = document.getElementById("movie_player") as {
+            toggleFullscreen?: () => void;
+          } | null;
+          if (typeof el?.toggleFullscreen === "function") {
+            el.toggleFullscreen();
+            return null;
           }
-          await target.requestFullscreen();
-          return null;
+          return "YouTube fullscreen control not found (open a watch page?)";
         });
         if (err) {
-          throw new Error(err);
+          await player.click({ position: { x: 40, y: 40 } });
+          await this.page.keyboard.press("f");
         }
       } catch (err) {
         if (isTransientPageError(err)) {
