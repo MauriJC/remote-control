@@ -18,6 +18,7 @@ export type Ack = {
 
 export type PlayerState = {
   playing: boolean;
+  buffering: boolean;
   title: string;
   videoId: string;
   currentTime: number;
@@ -36,6 +37,7 @@ export const emptyPlayerState = (
   overrides: Partial<PlayerState> = {},
 ): PlayerState => ({
   playing: false,
+  buffering: false,
   title: "Fake player",
   videoId: "",
   currentTime: 0,

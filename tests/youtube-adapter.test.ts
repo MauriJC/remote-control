@@ -10,13 +10,32 @@ import {
   vi,
 } from "vitest";
 import { chromium, type Browser, type Page } from "playwright";
-import { YouTubeAdapter } from "../src/youtube-adapter.js";
+import {
+  YouTubeAdapter,
+  buildYouTubeSeekUrl,
+} from "../src/youtube-adapter.js";
 
 const fixturePath = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
   "fixtures",
   "fake-player.html",
 );
+
+describe("buildYouTubeSeekUrl", () => {
+  it("builds a watch URL with t= when no current href", () => {
+    expect(buildYouTubeSeekUrl("abc123", 90)).toBe(
+      "https://www.youtube.com/watch?v=abc123&t=90s",
+    );
+  });
+
+  it("updates t= on an existing watch URL and keeps list params", () => {
+    const href =
+      "https://www.youtube.com/watch?v=abc123&list=PLtest&index=2";
+    expect(buildYouTubeSeekUrl("abc123", 45, href)).toBe(
+      "https://www.youtube.com/watch?v=abc123&list=PLtest&index=2&t=45s",
+    );
+  });
+});
 
 describe("YouTubeAdapter", () => {
   let browser: Browser;
@@ -71,6 +90,7 @@ describe("YouTubeAdapter", () => {
   it("keeps last state when navigation destroys the execution context", async () => {
     const goodState = {
       playing: true,
+      buffering: false,
       title: "Held title",
       videoId: "abc",
       currentTime: 1,

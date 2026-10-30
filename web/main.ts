@@ -48,7 +48,8 @@ const client = new RemoteClient(undefined, {
     if (!seekDragging) {
       seekInput.value = String(Math.min(state.currentTime, duration));
     }
-    timeLabel.textContent = `${formatTime(state.currentTime)} / ${formatTime(duration)}`;
+    const buf = state.buffering ? " · buffering" : "";
+    timeLabel.textContent = `${formatTime(state.currentTime)} / ${formatTime(duration)}${buf}`;
 
     volumeInput.value = String(state.volume);
     volumeLabel.textContent = `${state.volume}%`;

@@ -2,6 +2,21 @@ import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { chromium, type BrowserContext } from "playwright";
 
+const BRANDED_CHANNELS = new Set([
+  "chrome",
+  "chrome-beta",
+  "chrome-dev",
+  "chrome-canary",
+  "msedge",
+  "msedge-beta",
+  "msedge-dev",
+  "msedge-canary",
+]);
+
+function isBrandedChannel(channel: string | undefined): boolean {
+  return channel !== undefined && BRANDED_CHANNELS.has(channel);
+}
+
 export type TvBrowserOptions = {
   userDataDir: string;
   extensionPaths: string[];
@@ -40,6 +55,10 @@ export async function launchTvBrowser(
   if (opts.browserChannel) {
     launchOptions.channel = opts.browserChannel;
     console.log(`Using installed browser channel: ${opts.browserChannel}`);
+    if (isBrandedChannel(opts.browserChannel)) {
+      launchOptions.ignoreDefaultArgs = ["--disable-extensions", "--no-sandbox"];
+      launchOptions.chromiumSandbox = true;
+    }
   } else {
     console.log(
       "Using Playwright Chromium (not Google Chrome).",

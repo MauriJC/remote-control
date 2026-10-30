@@ -29,6 +29,13 @@ if (config.launchBrowser) {
       "LOAD_EXTENSIONS not set — skipping extensions/ (stable YouTube playback).",
     );
   }
+  if (config.browserChannel?.startsWith("chrome") && config.loadExtensions) {
+    console.error(
+      "BROWSER_CHANNEL=chrome with LOAD_EXTENSIONS=true is not supported. " +
+        "Use LOAD_EXTENSIONS=false and a dedicated USER_DATA_DIR (e.g. ./data/chrome-tv-profile).",
+    );
+    process.exit(1);
+  }
   if (
     config.playerMode === "youtube" &&
     config.loadExtensions &&
@@ -39,13 +46,33 @@ if (config.launchBrowser) {
         "(ERR_BLOCKED_BY_CLIENT). Use LOAD_EXTENSIONS=false or BROWSER_CHANNEL=chrome with a tuned profile.",
     );
   }
-  browserContext = await launchTvBrowser({
-    userDataDir: config.userDataDir,
-    extensionPaths,
-    startUrl: config.browserStartUrl,
-    browserChannel: config.browserChannel,
-  });
-  console.log("Chromium TV browser started (headed, persistent profile).");
+  try {
+    browserContext = await launchTvBrowser({
+      userDataDir: config.userDataDir,
+      extensionPaths,
+      startUrl: config.browserStartUrl,
+      browserChannel: config.browserChannel,
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("Failed to launch TV browser:", msg);
+    if (config.browserChannel) {
+      console.error(
+        "Install Google Chrome / Edge, or remove BROWSER_CHANNEL for Playwright Chromium.",
+      );
+    }
+    process.exit(1);
+  }
+  const browserLabel = config.browserChannel?.startsWith("chrome")
+    ? "Google Chrome TV browser started (headed, persistent profile)."
+    : config.browserChannel?.startsWith("msedge")
+      ? "Microsoft Edge TV browser started (headed, persistent profile)."
+      : "Playwright Chromium TV browser started (headed, persistent profile).";
+  console.log(browserLabel);
+  const version = browserContext.browser()?.version();
+  if (version) {
+    console.log(`Browser version: ${version}`);
+  }
 }
 
 if (config.playerMode === "youtube") {

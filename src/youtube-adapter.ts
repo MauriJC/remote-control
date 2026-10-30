@@ -4,6 +4,43 @@ import { emptyPlayerState, type PlayerState } from "./protocol.js";
 
 type ReadResult = PlayerState | { error: string };
 
+/** Same watch URL with updated `t=`; keeps playlist params when already on /watch. */
+export function buildYouTubeSeekUrl(
+  videoId: string,
+  seconds: number,
+  currentHref?: string,
+): string {
+  const t = Math.max(0, Math.floor(seconds));
+  if (currentHref) {
+    try {
+      const url = new URL(currentHref);
+      const host = url.hostname.replace(/^www\./i, "");
+      if (host === "youtube.com" && url.pathname === "/watch") {
+        const v = url.searchParams.get("v");
+        if (v) {
+          url.searchParams.set("t", `${t}s`);
+          return url.toString();
+        }
+      }
+    } catch {
+      /* use default template */
+    }
+  }
+  return `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}&t=${t}s`;
+}
+
+function seekToleranceSeconds(duration: number): number {
+  if (duration <= 180) return 3;
+  if (duration <= 600) return 5;
+  return 8;
+}
+
+/** Long videos need more time to fetch distant segments (especially on netbook). */
+function seekWaitTimeoutMs(duration: number): number {
+  const scaled = 8000 + duration * 12;
+  return Math.min(45000, Math.max(12000, scaled));
+}
+
 function isTransientPageError(err: unknown): boolean {
   const msg = err instanceof Error ? err.message : String(err);
   return (
@@ -75,9 +112,11 @@ export class YouTubeAdapter implements PlayerAdapter {
           const data = el.getVideoData();
           const state = el.getPlayerState?.() ?? 2; // YT_PAUSED
           const playing = state === 1; // YT_PLAYING
+          const buffering = state === 3; // YT_BUFFERING
 
           return {
             playing,
+            buffering,
             title: data.title ?? "",
             videoId: data.video_id ?? "",
             currentTime: Math.floor(el.getCurrentTime?.() ?? 0),
@@ -95,10 +134,13 @@ export class YouTubeAdapter implements PlayerAdapter {
         }
 
         const { ytpErrorText, ...state } = result;
-        this.cache =
-          ytpErrorText && ytpErrorText.length > 0
-            ? { ...state, error: ytpErrorText }
-            : state;
+        const showYtpError =
+          ytpErrorText &&
+          ytpErrorText.length > 0 &&
+          !state.buffering;
+        this.cache = showYtpError
+          ? { ...state, error: ytpErrorText }
+          : { ...state, error: undefined };
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         if (isTransientPageError(err)) {
@@ -169,7 +211,7 @@ export class YouTubeAdapter implements PlayerAdapter {
     });
   }
 
-  /** Progress bar click (like a user), then API / URL fallbacks for unbuffered seeks. */
+  /** Navigate to watch?v=…&t=… (reliable in Chrome); API seek for tests/off-YouTube. */
   private async performSeek(targetSeconds: number): Promise<void> {
     type SeekMeta =
       | { error: string }
@@ -178,6 +220,8 @@ export class YouTubeAdapter implements PlayerAdapter {
           target: number;
           wasPlaying: boolean;
           videoId: string;
+          pageHref: string;
+          useUrlSeek: boolean;
         };
 
     const meta = (await this.page.evaluate((rawTarget) => {
@@ -185,7 +229,7 @@ export class YouTubeAdapter implements PlayerAdapter {
         getVideoData?: () => { video_id?: string };
         getDuration?: () => number;
         getPlayerState?: () => number;
-        pauseVideo?: () => void;
+        seekTo?: (s: number, allowSeekAhead: boolean) => void;
       } | null;
 
       if (!el) {
@@ -206,63 +250,83 @@ export class YouTubeAdapter implements PlayerAdapter {
         return { error: "No video id on page" };
       }
 
-      el.pauseVideo?.();
       const target = Math.max(0, Math.min(rawTarget, duration));
       const wasPlaying = el.getPlayerState?.() === 1;
 
-      return { duration, target, wasPlaying, videoId };
+      let useUrlSeek = false;
+      try {
+        const url = new URL(location.href);
+        const host = url.hostname.replace(/^www\./i, "");
+        useUrlSeek = host === "youtube.com" && url.pathname === "/watch";
+      } catch {
+        useUrlSeek = false;
+      }
+
+      return {
+        duration,
+        target,
+        wasPlaying,
+        videoId,
+        pageHref: location.href,
+        useUrlSeek,
+      };
     }, targetSeconds)) as SeekMeta;
 
     if ("error" in meta) {
       throw new Error(meta.error);
     }
 
-    const player = this.page.locator("#movie_player");
-    const playerBox = await player.boundingBox();
-    if (playerBox) {
-      await this.page.mouse.move(
-        playerBox.x + playerBox.width / 2,
-        playerBox.y + playerBox.height * 0.75,
+    if (!meta.useUrlSeek) {
+      await this.seekViaPlayerApi(meta.target, meta.wasPlaying);
+      const applied = await this.waitUntilNearTime(
+        meta.target,
+        seekToleranceSeconds(meta.duration),
+        seekWaitTimeoutMs(meta.duration),
+      );
+      if (!applied) {
+        throw new Error("Seek did not apply");
+      }
+      return;
+    }
+
+    const seekUrl = buildYouTubeSeekUrl(
+      meta.videoId,
+      meta.target,
+      meta.pageHref,
+    );
+    await this.page.goto(seekUrl, { waitUntil: "domcontentloaded" });
+
+    await this.page
+      .waitForFunction(() => {
+        const el = document.getElementById("movie_player") as {
+          getVideoData?: () => unknown;
+          getCurrentTime?: () => number;
+        } | null;
+        return typeof el?.getVideoData === "function";
+      })
+      .catch(() => {
+        throw new Error("YouTube player did not load after seek navigation");
+      });
+
+    const tolerance = seekToleranceSeconds(meta.duration);
+    const timeoutMs = seekWaitTimeoutMs(meta.duration);
+    const applied = await this.waitUntilNearTime(
+      meta.target,
+      tolerance,
+      timeoutMs,
+    );
+
+    if (!applied) {
+      throw new Error(
+        "Seek page loaded but time not reached yet — wait for buffering",
       );
     }
 
-    const bar = this.page.locator("#movie_player .ytp-progress-bar");
-    let usedBar = false;
-    if (await bar.isVisible().catch(() => false)) {
-      const barBox = await bar.boundingBox();
-      if (barBox && meta.duration > 0) {
-        const fraction = meta.target / meta.duration;
-        const x = Math.max(
-          2,
-          Math.min(barBox.width - 2, barBox.width * fraction),
-        );
-        await bar.click({
-          position: { x, y: barBox.height / 2 },
-          force: true,
-        });
-        usedBar = true;
-      }
-    }
-
-    if (!usedBar) {
-      await this.seekViaPlayerApi(meta.target, meta.wasPlaying);
-    }
-
-    let applied = await this.waitUntilNearTime(meta.target);
-    if (!applied) {
-      await this.seekViaWatchUrl(meta.videoId, meta.target, meta.wasPlaying);
-      applied = await this.waitUntilNearTime(meta.target, 6, 15000);
-    }
-
-    if (!applied) {
-      throw new Error("Seek did not apply — try again in a moment");
-    }
-
-    if (meta.wasPlaying) {
+    if (!meta.wasPlaying) {
       await this.page.evaluate(() => {
         (
-          document.getElementById("movie_player") as { playVideo?: () => void }
-        )?.playVideo?.();
+          document.getElementById("movie_player") as { pauseVideo?: () => void }
+        )?.pauseVideo?.();
       });
     }
   }
@@ -284,33 +348,6 @@ export class YouTubeAdapter implements PlayerAdapter {
       },
       { seekTarget: target, resume: wasPlaying },
     );
-  }
-
-  private async seekViaWatchUrl(
-    videoId: string,
-    target: number,
-    wasPlaying: boolean,
-  ): Promise<void> {
-    const t = Math.max(0, Math.floor(target));
-    await this.page.goto(
-      `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}&t=${t}s`,
-      { waitUntil: "domcontentloaded" },
-    );
-    if (!wasPlaying) {
-      await this.page
-        .waitForFunction(() => {
-          const el = document.getElementById("movie_player") as {
-            pauseVideo?: () => void;
-          } | null;
-          return typeof el?.pauseVideo === "function";
-        })
-        .catch(() => undefined);
-      await this.page.evaluate(() => {
-        (
-          document.getElementById("movie_player") as { pauseVideo?: () => void }
-        )?.pauseVideo?.();
-      });
-    }
   }
 
   private async waitUntilNearTime(
