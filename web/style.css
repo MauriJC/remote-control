@@ -35,8 +35,26 @@ input {
 
 .controls {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
   margin-bottom: 1rem;
+}
+
+.range-label {
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.range-meta {
+  float: right;
+  color: #9aa0a6;
+  font-size: 0.85rem;
+}
+
+.range-label input[type="range"] {
+  display: block;
+  width: 100%;
+  margin-top: 0.35rem;
 }
 
 button {

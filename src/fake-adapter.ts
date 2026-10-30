@@ -13,6 +13,24 @@ export class FakeAdapter implements PlayerAdapter {
     this.state = { ...this.state, playing: false };
   }
 
+  async seekTo(seconds: number): Promise<void> {
+    const duration = this.state.duration || 0;
+    const clamped =
+      duration > 0
+        ? Math.max(0, Math.min(seconds, duration))
+        : Math.max(0, seconds);
+    this.state = { ...this.state, currentTime: Math.floor(clamped) };
+  }
+
+  async setVolume(volume: number): Promise<void> {
+    const clamped = Math.max(0, Math.min(100, Math.round(volume)));
+    this.state = { ...this.state, volume: clamped };
+  }
+
+  async enterFullscreen(): Promise<void> {
+    /* no-op in RAM simulator */
+  }
+
   readState(): PlayerState {
     return { ...this.state };
   }

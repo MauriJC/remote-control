@@ -20,7 +20,20 @@
         <button id="connect" type="button">Connect</button>
         <button id="play" type="button" disabled>Play</button>
         <button id="pause" type="button" disabled>Pause</button>
+        <button id="fullscreen" type="button" disabled>Fullscreen</button>
       </div>
+
+      <label class="range-label">
+        Time
+        <span id="time-label" class="range-meta">0:00 / 0:00</span>
+        <input id="seek" type="range" min="0" max="0" value="0" disabled />
+      </label>
+
+      <label class="range-label">
+        Volume
+        <span id="volume-label" class="range-meta">50%</span>
+        <input id="volume" type="range" min="0" max="100" value="50" disabled />
+      </label>
 
       <pre id="state" aria-live="polite">{}</pre>
     </main>

@@ -45,17 +45,41 @@ export async function registerWsGateway(
     });
 
     socket.on("message", async (data) => {
-      const command = JSON.parse(data.toString()) as Command;
-      const result = await bus.dispatch(command);
-      const ack: Ack = {
-        type: "ack",
-        id: command.id,
-        ...result,
-      };
-      socket.send(JSON.stringify(ack));
+      let command: Command;
+      try {
+        command = JSON.parse(data.toString()) as Command;
+      } catch {
+        socket.send(
+          JSON.stringify({
+            type: "ack",
+            id: "invalid",
+            ok: false,
+            error: "Invalid JSON",
+          } satisfies Ack),
+        );
+        return;
+      }
 
-      if (result.ok) {
-        broadcast(JSON.stringify(session.stateMessage()));
+      try {
+        const result = await bus.dispatch(command);
+        const ack: Ack = {
+          type: "ack",
+          id: command.id,
+          ...result,
+        };
+        socket.send(JSON.stringify(ack));
+
+        if (result.ok) {
+          broadcast(JSON.stringify(session.stateMessage()));
+        }
+      } catch (err) {
+        const ack: Ack = {
+          type: "ack",
+          id: command.id,
+          ok: false,
+          error: err instanceof Error ? err.message : String(err),
+        };
+        socket.send(JSON.stringify(ack));
       }
     });
   });

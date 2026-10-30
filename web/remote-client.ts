@@ -6,6 +6,12 @@ export type RemoteClientHandlers = {
   onStatus?(text: string): void;
 };
 
+export type OutgoingCommand =
+  | { name: "play" | "pause" }
+  | { name: "seek"; seconds: number }
+  | { name: "setVolume"; volume: number }
+  | { name: "fullscreen" };
+
 type WebSocketFactory = (url: string) => WebSocket;
 
 let commandCounter = 0;
@@ -69,15 +75,15 @@ export class RemoteClient {
     return this.socket?.readyState === WebSocket.OPEN;
   }
 
-  sendCommand(name: Command["name"]): void {
+  sendCommand(payload: OutgoingCommand): void {
     if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
       return;
     }
-    const command: Command = {
+    const command = {
       type: "command",
       id: nextCommandId(),
-      name,
-    };
+      ...payload,
+    } as Command;
     this.socket.send(JSON.stringify(command));
   }
 }

@@ -11,6 +11,7 @@
         const player = document.getElementById("movie_player");
         let playing = true;
         let currentTime = 12;
+        let volume = 42;
 
         Object.assign(player, {
           getVideoData() {
@@ -23,7 +24,7 @@
             return currentTime;
           },
           getVolume() {
-            return 42;
+            return volume;
           },
           isMuted() {
             return false;
@@ -39,6 +40,12 @@
           },
           pauseVideo() {
             playing = false;
+          },
+          seekTo(seconds) {
+            currentTime = Math.max(0, Math.min(seconds, 180));
+          },
+          setVolume(value) {
+            volume = Math.max(0, Math.min(100, value));
           },
         });
 

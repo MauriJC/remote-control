@@ -52,6 +52,16 @@ Con `LAUNCH_BROWSER=true` y `PLAYER_MODE=youtube` (default al lanzar browser):
 
 Sin adblock en el TV (ver [extensions/README.md](./extensions/README.md)).
 
+## Etapa 5 — Seek, volumen, fullscreen
+
+Con la PWA conectada y un video en reproducción:
+
+1. **Time** — arrastrá el slider y soltá; el player salta a ese segundo.
+2. **Volume** — slider 0–100 (desmutea si hace falta).
+3. **Fullscreen** — pantalla completa en el monitor (video o contenedor del player).
+
+Volvé a buildar la PWA tras cambios en `web/`: `pnpm build:web`.
+
 ## Roadmap
 
 | Etapa | Estado |
@@ -60,7 +70,7 @@ Sin adblock en el TV (ver [extensions/README.md](./extensions/README.md)).
 | 2 Chromium headed + perfil | Hecho |
 | 3 Leer estado YouTube | Hecho (poll 1s + fixture tests) |
 | 4 Play/pause real | Hecho |
-| 5 Seek, volumen, fullscreen | Pendiente |
+| 5 Seek, volumen, fullscreen | Hecho |
 | 6 Abrir video desde el teléfono + 480p | Pendiente |
 
 Detalle en [plan.md](./plan.md).

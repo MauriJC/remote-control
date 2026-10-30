@@ -25,6 +25,9 @@ describe("CommandBus", () => {
       pause: async () => {
         pauseCalls += 1;
       },
+      seekTo: async () => {},
+      setVolume: async () => {},
+      enterFullscreen: async () => {},
       readState: stubReadState,
     };
 
@@ -53,6 +56,9 @@ describe("CommandBus", () => {
         playCalls++;
       },
       pause: async () => {},
+      seekTo: async () => {},
+      setVolume: async () => {},
+      enterFullscreen: async () => {},
       readState: stubReadState,
     };
 
@@ -75,6 +81,9 @@ describe("CommandBus", () => {
         return playGate.promise;
       },
       pause: async () => {},
+      seekTo: async () => {},
+      setVolume: async () => {},
+      enterFullscreen: async () => {},
       readState: stubReadState,
     };
 
@@ -112,6 +121,9 @@ describe("CommandBus", () => {
       pause: async () => {
         pauseCalls += 1;
       },
+      seekTo: async () => {},
+      setVolume: async () => {},
+      enterFullscreen: async () => {},
       readState: stubReadState,
     };
 
@@ -135,6 +147,9 @@ describe("CommandBus", () => {
       pause: async () => {
         return Promise.resolve();
       },
+      seekTo: async () => {},
+      setVolume: async () => {},
+      enterFullscreen: async () => {},
       readState: stubReadState,
     };
     const bus = new CommandBus(adapter);
@@ -142,6 +157,31 @@ describe("CommandBus", () => {
 
     const playResult = await playAck;
     expect(playResult).toEqual({ ok: true });
+  });
+
+  it("dispatches seek to the adapter", async () => {
+    let seekTarget = -1;
+    const adapter: PlayerAdapter = {
+      play: async () => {},
+      pause: async () => {},
+      seekTo: async (seconds) => {
+        seekTarget = seconds;
+      },
+      setVolume: async () => {},
+      enterFullscreen: async () => {},
+      readState: stubReadState,
+    };
+
+    const bus = new CommandBus(adapter);
+    const result = await bus.dispatch({
+      type: "command",
+      id: "seek-1",
+      name: "seek",
+      seconds: 90,
+    });
+
+    expect(result).toEqual({ ok: true });
+    expect(seekTarget).toBe(90);
   });
 });
 

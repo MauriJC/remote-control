@@ -1,8 +1,13 @@
-export type Command = {
+type CommandBase = {
   type: "command";
   id: string;
-  name: "play" | "pause";
 };
+
+export type Command =
+  | (CommandBase & { name: "play" | "pause" })
+  | (CommandBase & { name: "seek"; seconds: number })
+  | (CommandBase & { name: "setVolume"; volume: number })
+  | (CommandBase & { name: "fullscreen" });
 
 export type Ack = {
   type: "ack";

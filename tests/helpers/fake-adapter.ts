@@ -11,6 +11,9 @@ export function createFakeAdapter(): PlayerAdapter {
     pause: vi.fn().mockImplementation(async () => {
       playing = false;
     }),
+    seekTo: vi.fn().mockResolvedValue(undefined),
+    setVolume: vi.fn().mockResolvedValue(undefined),
+    enterFullscreen: vi.fn().mockResolvedValue(undefined),
     readState: () => emptyPlayerState({ playing }),
   };
 }

@@ -120,6 +120,20 @@ describe("YouTubeAdapter", () => {
     expect(adapter.readState().playing).toBe(false);
   });
 
+  it("seekTo() updates currentTime on the fixture player", async () => {
+    const adapter = new YouTubeAdapter(page);
+    await adapter.seekTo(55);
+
+    expect(adapter.readState().currentTime).toBe(55);
+  });
+
+  it("setVolume() updates volume on the fixture player", async () => {
+    const adapter = new YouTubeAdapter(page);
+    await adapter.setVolume(80);
+
+    expect(adapter.readState().volume).toBe(80);
+  });
+
   it("sets error when movie_player is missing", async () => {
     const blank = await browser.newPage();
     await blank.setContent("<html><body></body></html>");
