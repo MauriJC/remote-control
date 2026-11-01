@@ -7,6 +7,8 @@ const connectBtn = document.querySelector<HTMLButtonElement>("#connect")!;
 const playBtn = document.querySelector<HTMLButtonElement>("#play")!;
 const pauseBtn = document.querySelector<HTMLButtonElement>("#pause")!;
 const fullscreenBtn = document.querySelector<HTMLButtonElement>("#fullscreen")!;
+const watchUrlInput = document.querySelector<HTMLInputElement>("#watch-url")!;
+const openUrlBtn = document.querySelector<HTMLButtonElement>("#open-url")!;
 const seekInput = document.querySelector<HTMLInputElement>("#seek")!;
 const volumeInput = document.querySelector<HTMLInputElement>("#volume")!;
 const timeLabel = document.querySelector<HTMLSpanElement>("#time-label")!;
@@ -33,12 +35,19 @@ function setPlaybackControlsEnabled(connected: boolean): void {
   fullscreenBtn.disabled = !connected;
   seekInput.disabled = !connected;
   volumeInput.disabled = !connected;
+  watchUrlInput.disabled = !connected;
+  openUrlBtn.disabled = !connected;
 }
 
 const client = new RemoteClient(undefined, {
   onStatus(text) {
     statusEl.textContent = text;
     setPlaybackControlsEnabled(client.connected);
+  },
+  onAck(ack) {
+    if (!ack.ok && ack.error) {
+      statusEl.textContent = ack.error;
+    }
   },
   onState(state) {
     stateEl.textContent = JSON.stringify(state, null, 2);
@@ -68,6 +77,22 @@ connectBtn.addEventListener("click", () => {
   }
   localStorage.setItem(TOKEN_KEY, token);
   client.connect(token);
+});
+
+openUrlBtn.addEventListener("click", () => {
+  const url = watchUrlInput.value.trim();
+  if (!url) {
+    statusEl.textContent = "Paste a YouTube URL";
+    return;
+  }
+  statusEl.textContent = "Opening on TV…";
+  client.sendCommand({ name: "openUrl", url });
+});
+
+watchUrlInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    openUrlBtn.click();
+  }
 });
 
 playBtn.addEventListener("click", () => client.sendCommand({ name: "play" }));

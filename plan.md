@@ -294,15 +294,16 @@ Cada etapa termina en algo que se puede usar o demostrar. No se arranca la sigui
 - [ ] Criterio de hecho: seek y volumen se ven en el monitor y vuelven en `PlayerState`.
 - [ ] Commit: `feat: add seek volume and fullscreen commands`
 
-### Etapa 6 — Elegir video desde el teléfono + 480p
+### Etapa 6 — Elegir video desde el teléfono
 
-**Para qué:** ya no hace falta tipear la URL en la netbook.
+**Para qué:** ya no hace falta tipear la URL en la netbook/TV.
 
-**Files:** `[src/youtube-adapter.ts](src/youtube-adapter.ts)`, `[src/protocol.ts](src/protocol.ts)`, `[web/](web/)`
+**Files:** `[src/youtube-adapter.ts](src/youtube-adapter.ts)`, `[src/protocol.ts](src/protocol.ts)`, `[src/config.ts](src/config.ts)`, `[web/](web/)`
 
-- [ ] `playVideo` → `page.goto(https://www.youtube.com/watch?v=ID)` + `setPlaybackQualityRange` 480p.
-- [ ] Criterio de hecho: pegar un link en el teléfono carga el video en el VGA a 480p; CPU/HDD no se van a 1080 Auto.
-- [ ] Commit: `feat: play YouTube videos from phone URL at 480p`
+- [ ] Comando `openUrl` / `loadVideo`: pegar `watch?v=` en la PWA → `page.goto` en el browser del server.
+- [ ] **Calidad opcional:** `PLAYBACK_QUALITY_CAP` en `.env` (p. ej. `480`, `720`); vacío = Auto de YouTube (default en PC potente). Solo para netbook vieja si querés probar.
+- [ ] Criterio de hecho: link en el teléfono abre el video en el monitor; con cap 480p el `PlayerState.quality` refleja el tope cuando esté configurado.
+- [ ] Commit: `feat: open YouTube URL from phone with optional quality cap`
 
 ### Etapa 7 — Endurecer el sistema distribuido chico
 

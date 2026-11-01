@@ -10,7 +10,8 @@ export type OutgoingCommand =
   | { name: "play" | "pause" }
   | { name: "seek"; seconds: number }
   | { name: "setVolume"; volume: number }
-  | { name: "fullscreen" };
+  | { name: "fullscreen" }
+  | { name: "openUrl"; url: string };
 
 type WebSocketFactory = (url: string) => WebSocket;
 

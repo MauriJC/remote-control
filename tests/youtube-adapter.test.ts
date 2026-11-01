@@ -13,6 +13,7 @@ import { chromium, type Browser, type Page } from "playwright";
 import {
   YouTubeAdapter,
   buildYouTubeSeekUrl,
+  capToYouTubeQualityLabel,
 } from "../src/youtube-adapter.js";
 
 const fixturePath = path.join(
@@ -20,6 +21,13 @@ const fixturePath = path.join(
   "fixtures",
   "fake-player.html",
 );
+
+describe("capToYouTubeQualityLabel", () => {
+  it("maps cap pixels to YouTube labels", () => {
+    expect(capToYouTubeQualityLabel(480)).toBe("large");
+    expect(capToYouTubeQualityLabel(720)).toBe("hd720");
+  });
+});
 
 describe("buildYouTubeSeekUrl", () => {
   it("builds a watch URL with t= when no current href", () => {

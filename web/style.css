@@ -57,6 +57,13 @@ input {
   margin-top: 0.35rem;
 }
 
+#open-url {
+  display: block;
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.5rem 1rem;
+}
+
 button {
   padding: 0.5rem 1rem;
 }

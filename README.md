@@ -62,6 +62,14 @@ Con la PWA conectada y un video en reproducción:
 
 Volvé a buildar la PWA tras cambios en `web/`: `pnpm build:web`.
 
+## Etapa 6 — Abrir video desde el teléfono
+
+1. `pnpm build:web` y reiniciá el server si hace falta.
+2. PWA conectada → pegá URL de YouTube o solo el **video id** → **Open on TV**.
+3. Opcional en `.env`: `PLAYBACK_QUALITY_CAP=480` (o `720` / `1080`). Sin variable = Auto de YouTube.
+
+Recomendado en el TV: `BROWSER_CHANNEL=chrome` (seek y carga más estables que Playwright Chromium).
+
 ## Roadmap
 
 | Etapa | Estado |
@@ -71,6 +79,6 @@ Volvé a buildar la PWA tras cambios en `web/`: `pnpm build:web`.
 | 3 Leer estado YouTube | Hecho (poll 1s + fixture tests) |
 | 4 Play/pause real | Hecho |
 | 5 Seek, volumen, fullscreen | Hecho |
-| 6 Abrir video desde el teléfono + 480p | Pendiente |
+| 6 Abrir video desde el teléfono | Hecho (calidad max opcional vía env) |
 
 Detalle en [plan.md](./plan.md).

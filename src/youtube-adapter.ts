@@ -1,6 +1,11 @@
 import type { Page } from "playwright";
 import type { PlayerAdapter } from "./command-bus.js";
-import { emptyPlayerState, type PlayerState } from "./protocol.js";
+import {
+  buildYouTubeWatchUrl,
+  emptyPlayerState,
+  parseYouTubeWatchInput,
+  type PlayerState,
+} from "./protocol.js";
 
 type ReadResult = PlayerState | { error: string };
 
@@ -41,6 +46,15 @@ function seekWaitTimeoutMs(duration: number): number {
   return Math.min(45000, Math.max(12000, scaled));
 }
 
+/** Maps PLAYBACK_QUALITY_CAP (px height) to YouTube quality labels. */
+export function capToYouTubeQualityLabel(capPx: number): string {
+  if (capPx <= 360) return "small";
+  if (capPx <= 480) return "large";
+  if (capPx <= 720) return "hd720";
+  if (capPx <= 1080) return "hd1080";
+  return "highres";
+}
+
 function isTransientPageError(err: unknown): boolean {
   const msg = err instanceof Error ? err.message : String(err);
   return (
@@ -59,7 +73,10 @@ export class YouTubeAdapter implements PlayerAdapter {
 
   private pageChain: Promise<unknown> = Promise.resolve();
 
-  constructor(private readonly page: Page) {}
+  constructor(
+    private readonly page: Page,
+    private readonly playbackQualityCap?: number,
+  ) {}
 
   private withPage<T>(task: () => Promise<T>): Promise<T> {
     const next = this.pageChain.then(task, task);
@@ -185,6 +202,31 @@ export class YouTubeAdapter implements PlayerAdapter {
     await this.refreshState();
   }
 
+  async openWatchUrl(input: string): Promise<void> {
+    const parsed = parseYouTubeWatchInput(input);
+    if (!parsed) {
+      throw new Error("Invalid YouTube URL or video id");
+    }
+    const href = buildYouTubeWatchUrl(parsed.videoId, parsed.startSeconds);
+    await this.withPage(async () => {
+      await this.page.goto(href, { waitUntil: "domcontentloaded" });
+      await this.page
+        .waitForFunction(() => {
+          const el = document.getElementById("movie_player") as {
+            getVideoData?: () => unknown;
+          } | null;
+          return typeof el?.getVideoData === "function";
+        })
+        .catch(() => {
+          throw new Error("YouTube player did not load");
+        });
+      if (this.playbackQualityCap !== undefined) {
+        await this.applyPlaybackQualityCap(this.playbackQualityCap);
+      }
+    });
+    await this.refreshState();
+  }
+
   async enterFullscreen(): Promise<void> {
     await this.withPage(async () => {
       try {
@@ -226,6 +268,21 @@ export class YouTubeAdapter implements PlayerAdapter {
         throw err;
       }
     });
+  }
+
+  private async applyPlaybackQualityCap(capPx: number): Promise<void> {
+    const label = capToYouTubeQualityLabel(capPx);
+    await this.page.evaluate((quality) => {
+      const el = document.getElementById("movie_player") as {
+        setPlaybackQuality?: (q: string) => void;
+        setPlaybackQualityRange?: (min: string, max: string) => void;
+      } | null;
+      if (typeof el?.setPlaybackQualityRange === "function") {
+        el.setPlaybackQualityRange(quality, quality);
+        return;
+      }
+      el?.setPlaybackQuality?.(quality);
+    }, label);
   }
 
   /** Navigate to watch?v=…&t=… (reliable in Chrome); API seek for tests/off-YouTube. */

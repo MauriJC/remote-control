@@ -28,6 +28,7 @@ describe("CommandBus", () => {
       seekTo: async () => {},
       setVolume: async () => {},
       enterFullscreen: async () => {},
+      openWatchUrl: async () => {},
       readState: stubReadState,
     };
 
@@ -59,6 +60,7 @@ describe("CommandBus", () => {
       seekTo: async () => {},
       setVolume: async () => {},
       enterFullscreen: async () => {},
+      openWatchUrl: async () => {},
       readState: stubReadState,
     };
 
@@ -84,6 +86,7 @@ describe("CommandBus", () => {
       seekTo: async () => {},
       setVolume: async () => {},
       enterFullscreen: async () => {},
+      openWatchUrl: async () => {},
       readState: stubReadState,
     };
 
@@ -124,6 +127,7 @@ describe("CommandBus", () => {
       seekTo: async () => {},
       setVolume: async () => {},
       enterFullscreen: async () => {},
+      openWatchUrl: async () => {},
       readState: stubReadState,
     };
 
@@ -150,6 +154,7 @@ describe("CommandBus", () => {
       seekTo: async () => {},
       setVolume: async () => {},
       enterFullscreen: async () => {},
+      openWatchUrl: async () => {},
       readState: stubReadState,
     };
     const bus = new CommandBus(adapter);
@@ -169,6 +174,7 @@ describe("CommandBus", () => {
       },
       setVolume: async () => {},
       enterFullscreen: async () => {},
+      openWatchUrl: async () => {},
       readState: stubReadState,
     };
 
@@ -182,6 +188,32 @@ describe("CommandBus", () => {
 
     expect(result).toEqual({ ok: true });
     expect(seekTarget).toBe(90);
+  });
+
+  it("dispatches openUrl to the adapter", async () => {
+    let opened = "";
+    const adapter: PlayerAdapter = {
+      play: async () => {},
+      pause: async () => {},
+      seekTo: async () => {},
+      setVolume: async () => {},
+      enterFullscreen: async () => {},
+      openWatchUrl: async (url) => {
+        opened = url;
+      },
+      readState: stubReadState,
+    };
+
+    const bus = new CommandBus(adapter);
+    const result = await bus.dispatch({
+      type: "command",
+      id: "open-1",
+      name: "openUrl",
+      url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    });
+
+    expect(result).toEqual({ ok: true });
+    expect(opened).toContain("dQw4w9WgXcQ");
   });
 });
 

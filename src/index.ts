@@ -81,7 +81,7 @@ if (config.playerMode === "youtube") {
     process.exit(1);
   }
   const page = browserContext.pages()[0] ?? (await browserContext.newPage());
-  const youtube = new YouTubeAdapter(page);
+  const youtube = new YouTubeAdapter(page, config.playbackQualityCap);
   await youtube.refreshState();
   adapter = youtube;
   console.log("Using YouTubeAdapter (live readState from movie_player).");

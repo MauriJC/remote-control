@@ -1,5 +1,9 @@
 import type { PlayerAdapter } from "./command-bus.js";
-import { emptyPlayerState, type PlayerState } from "./protocol.js";
+import {
+  emptyPlayerState,
+  parseYouTubeWatchInput,
+  type PlayerState,
+} from "./protocol.js";
 
 /** Simulated YouTube player in RAM (Etapa 1). */
 export class FakeAdapter implements PlayerAdapter {
@@ -29,6 +33,18 @@ export class FakeAdapter implements PlayerAdapter {
 
   async enterFullscreen(): Promise<void> {
     /* no-op in RAM simulator */
+  }
+
+  async openWatchUrl(input: string): Promise<void> {
+    const parsed = parseYouTubeWatchInput(input);
+    if (!parsed) {
+      throw new Error("Invalid YouTube URL or video id");
+    }
+    this.loadVideo(parsed.videoId);
+    if (parsed.startSeconds !== undefined) {
+      await this.seekTo(parsed.startSeconds);
+    }
+    this.state = { ...this.state, playing: true, error: undefined };
   }
 
   readState(): PlayerState {

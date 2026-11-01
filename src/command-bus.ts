@@ -6,6 +6,7 @@ export type PlayerAdapter = {
   seekTo(seconds: number): Promise<void>;
   setVolume(volume: number): Promise<void>;
   enterFullscreen(): Promise<void>;
+  openWatchUrl(input: string): Promise<void>;
   readState(): PlayerState;
 };
 
@@ -54,6 +55,8 @@ export class CommandBus {
         return this.adapter.setVolume(command.volume);
       case "fullscreen":
         return this.adapter.enterFullscreen();
+      case "openUrl":
+        return this.adapter.openWatchUrl(command.url);
       default: {
         const _exhaustive: never = command;
         return Promise.reject(new Error("Unknown command"));

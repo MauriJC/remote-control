@@ -7,6 +7,21 @@ const projectRoot = path.join(__dirname, "..");
 
 const launchBrowser = process.env.LAUNCH_BROWSER === "true";
 
+function parsePlaybackQualityCap(raw: string | undefined): number | undefined {
+  const trimmed = raw?.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+  const n = Number.parseInt(trimmed, 10);
+  if (!Number.isFinite(n) || n < 144 || n > 4320) {
+    console.warn(
+      `Invalid PLAYBACK_QUALITY_CAP="${trimmed}" — use 480, 720, 1080, or omit for Auto.`,
+    );
+    return undefined;
+  }
+  return n;
+}
+
 export const config = {
   port: Number(process.env.PORT ?? 3000),
   authToken: process.env.AUTH_TOKEN ?? "",
@@ -20,8 +35,10 @@ export const config = {
   loadExtensions: process.env.LOAD_EXTENSIONS === "true",
   /** Installed browser: chrome | msedge | chromium (default). Store installs need chrome/msedge. */
   browserChannel: process.env.BROWSER_CHANNEL?.trim() || undefined,
+  /** Optional max height (480, 720, …). Omit = YouTube Auto. */
+  playbackQualityCap: parsePlaybackQualityCap(process.env.PLAYBACK_QUALITY_CAP),
   projectRoot,
-  /** fake = RAM simulator; youtube = read state from Chromium (Etapa 3+) */
+  /** fake = RAM simulator; youtube = read state from browser (Etapa 3+) */
   playerMode:
     process.env.PLAYER_MODE ??
     (launchBrowser ? "youtube" : "fake"),
