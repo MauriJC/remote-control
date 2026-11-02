@@ -2,53 +2,68 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Remote Control</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Remoto</title>
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
-    <main>
-      <h1>YouTube Remote</h1>
-      <p id="status" class="status">Disconnected</p>
+    <!--
+      THESIS: El teléfono es el puesto de proyección. El tiempo ocupa el pozo ámbar y la marcha es una tecla grabada. Rehúsa el player redondo con barra roja.
+      OWN-WORLD: Metal #272725, gel #CD961F, papel #B6A68D, tinta #1D1918. Contador en grotesca condensada tabular. El parte en mecanográfica. Controles grabados, sin píldoras.
+      STORY: Quien mira en el monitor conecta, lee el tiempo, pulsa marcha o pausa, mueve volumen y deja el JSON a la vista.
+      FIRST VIEWPORT: Franja con lámpara y estado. Pozo ámbar con el tiempo monumental y la duración a la derecha. Tira de título. Tecla de marcha. Banda de volumen. Marca de pantalla completa. Hoja con token, abrir en el TV y el JSON.
+      FORM: Cabina de proyección, tercer sistema de la lista, semilla 776422b5. Composición La mesa.
+      FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+    -->
+    <main class="booth">
+      <header class="plate">
+        <span class="jewel" id="jewel" data-state="off"></span>
+        <p id="status">Desconectado</p>
+      </header>
 
-      <label>
-        Auth token
-        <input id="token" type="password" autocomplete="off" />
-      </label>
+      <section class="well" id="well">
+        <p class="now" id="time-now">0:00</p>
+        <p class="mark" id="time-note"></p>
+        <p class="end" id="time-end">0:00</p>
+        <label class="seek">
+          <span class="visually-hidden">Tiempo</span>
+          <input id="seek" type="range" min="0" max="0" value="0" disabled />
+        </label>
+      </section>
 
-      <label class="url-label">
-        Open on TV
-        <input
-          id="watch-url"
-          type="url"
-          inputmode="url"
-          placeholder="https://youtube.com/watch?v=… or video id"
-          autocomplete="off"
-          disabled
-        />
-      </label>
-      <button id="open-url" type="button" disabled>Open on TV</button>
+      <p class="cue" id="title">Sin video</p>
 
-      <div class="controls">
-        <button id="connect" type="button">Connect</button>
-        <button id="play" type="button" disabled>Play</button>
-        <button id="pause" type="button" disabled>Pause</button>
-        <button id="fullscreen" type="button" disabled>Fullscreen</button>
-      </div>
+      <button class="transport" id="transport" type="button">Conectar</button>
 
-      <label class="range-label">
-        Time
-        <span id="time-label" class="range-meta">0:00 / 0:00</span>
-        <input id="seek" type="range" min="0" max="0" value="0" disabled />
-      </label>
-
-      <label class="range-label">
-        Volume
-        <span id="volume-label" class="range-meta">50%</span>
+      <label class="fader">
+        <span>Volumen</span>
+        <span id="volume-label">50%</span>
         <input id="volume" type="range" min="0" max="100" value="50" disabled />
       </label>
 
-      <pre id="state" aria-live="polite">{}</pre>
+      <button class="mark-btn" id="fullscreen" type="button" disabled>Pantalla completa</button>
+
+      <section class="bench">
+        <label>
+          Token
+          <input id="token" type="password" autocomplete="off" />
+        </label>
+        <label>
+          Abrir en el TV
+          <span class="open-row">
+            <input
+              id="watch-url"
+              type="url"
+              inputmode="url"
+              placeholder="youtube.com/watch?v=… o el id"
+              autocomplete="off"
+              disabled
+            />
+            <button id="open-url" type="button" disabled>Abrir</button>
+          </span>
+        </label>
+        <pre id="state" aria-live="polite">{}</pre>
+      </section>
     </main>
     <script type="module" src="/main.ts"></script>
   </body>

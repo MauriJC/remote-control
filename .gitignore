@@ -7,3 +7,4 @@ scratch.ts
 # Extensiones desempaquetadas (licencias / no redistribuir)
 /extensions/*
 !/extensions/README.md
+/.impeccable
