@@ -5,7 +5,7 @@
     <title>Fake YouTube movie_player</title>
   </head>
   <body>
-    <div id="movie_player"></div>
+    <div id="movie_player" class="html5-video-player"></div>
     <script>
       (function () {
         const player = document.getElementById("movie_player");
@@ -54,6 +54,9 @@
         };
         window.__setCurrentTime = (value) => {
           currentTime = value;
+        };
+        window.__setAdShowing = (value) => {
+          player.classList.toggle("ad-showing", value);
         };
       })();
     </script>

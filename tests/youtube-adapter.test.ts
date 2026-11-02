@@ -62,9 +62,12 @@ describe("YouTubeAdapter", () => {
 
   beforeEach(async () => {
     await page.evaluate(() => {
-      (window as unknown as { __setPlaying: (v: boolean) => void }).__setPlaying(
-        true,
-      );
+      const w = window as unknown as {
+        __setPlaying: (v: boolean) => void;
+        __setAdShowing: (v: boolean) => void;
+      };
+      w.__setPlaying(true);
+      w.__setAdShowing(false);
     });
   });
 
@@ -80,6 +83,20 @@ describe("YouTubeAdapter", () => {
     expect(state.currentTime).toBe(12);
     expect(state.duration).toBe(180);
     expect(state.volume).toBe(42);
+    expect(state.adPlaying).toBe(false);
+  });
+
+  it("sets adPlaying when the fixture has ad-showing", async () => {
+    await page.evaluate(() => {
+      (window as unknown as { __setAdShowing: (v: boolean) => void }).__setAdShowing(
+        true,
+      );
+    });
+
+    const adapter = new YouTubeAdapter(page);
+    await adapter.refreshState();
+
+    expect(adapter.readState().adPlaying).toBe(true);
   });
 
   it("reflects pause when the fixture player changes", async () => {

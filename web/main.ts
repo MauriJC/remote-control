@@ -29,11 +29,11 @@ function formatTime(seconds: number): string {
   return `${m}:${r.toString().padStart(2, "0")}`;
 }
 
-function setPlaybackControlsEnabled(connected: boolean): void {
+function setPlaybackControlsEnabled(connected: boolean, adPlaying = false): void {
   playBtn.disabled = !connected;
   pauseBtn.disabled = !connected;
   fullscreenBtn.disabled = !connected;
-  seekInput.disabled = !connected;
+  seekInput.disabled = !connected || adPlaying;
   volumeInput.disabled = !connected;
   watchUrlInput.disabled = !connected;
   openUrlBtn.disabled = !connected;
@@ -58,13 +58,14 @@ const client = new RemoteClient(undefined, {
       seekInput.value = String(Math.min(state.currentTime, duration));
     }
     const buf = state.buffering ? " · buffering" : "";
-    timeLabel.textContent = `${formatTime(state.currentTime)} / ${formatTime(duration)}${buf}`;
+    const ad = state.adPlaying ? " · anuncio" : "";
+    timeLabel.textContent = `${formatTime(state.currentTime)} / ${formatTime(duration)}${buf}${ad}`;
 
     volumeInput.value = String(state.volume);
     volumeLabel.textContent = `${state.volume}%`;
 
     if (client.connected) {
-      setPlaybackControlsEnabled(true);
+      setPlaybackControlsEnabled(true, state.adPlaying);
     }
   },
 });

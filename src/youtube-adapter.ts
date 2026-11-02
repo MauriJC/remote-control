@@ -6,6 +6,7 @@ import {
   parseYouTubeWatchInput,
   type PlayerState,
 } from "./protocol.js";
+import { isYouTubeAdShowing } from "./youtube-ad-state.js";
 
 type ReadResult = PlayerState | { error: string };
 
@@ -90,9 +91,16 @@ export class YouTubeAdapter implements PlayerAdapter {
   async refreshState(): Promise<void> {
     await this.withPage(async () => {
       try {
-        const result = await this.page.evaluate((): ReadResult & {
-          ytpErrorText?: string;
-        } => {
+        const adDetectSource = isYouTubeAdShowing.toString();
+        const result = await this.page.evaluate(
+          ({
+            detectSource,
+          }): ReadResult & {
+            ytpErrorText?: string;
+          } => {
+          const detectAd = eval(`(${detectSource})`) as (
+            player: HTMLElement | null,
+          ) => boolean;
           const el = document.getElementById("movie_player") as
             | (HTMLElement & {
                 getVideoData?: () => { video_id?: string; title?: string };
@@ -130,6 +138,7 @@ export class YouTubeAdapter implements PlayerAdapter {
           const state = el.getPlayerState?.() ?? 2; // YT_PAUSED
           const playing = state === 1; // YT_PLAYING
           const buffering = state === 3; // YT_BUFFERING
+          const adPlaying = detectAd(el);
 
           return {
             playing,
@@ -139,11 +148,13 @@ export class YouTubeAdapter implements PlayerAdapter {
             currentTime: Math.floor(el.getCurrentTime?.() ?? 0),
             duration: Math.floor(el.getDuration?.() ?? 0),
             volume: el.isMuted?.() ? 0 : Math.round(el.getVolume?.() ?? 0),
-            adPlaying: false,
+            adPlaying,
             quality: el.getPlaybackQuality?.() ?? "",
             ytpErrorText: ytpErrorText || undefined,
           };
-        });
+        },
+          { detectSource: adDetectSource },
+        );
 
         if ("error" in result) {
           this.cache = emptyPlayerState({ error: result.error });
