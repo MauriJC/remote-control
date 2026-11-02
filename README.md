@@ -68,7 +68,18 @@ Volvé a buildar la PWA tras cambios en `web/`: `pnpm build:web`.
 2. PWA conectada → pegá URL de YouTube o solo el **video id** → **Open on TV**.
 3. Opcional en `.env`: `PLAYBACK_QUALITY_CAP=480` (o `720` / `1080`). Sin variable = Auto de YouTube.
 
-Recomendado en el TV: `BROWSER_CHANNEL=chrome` (seek y carga más estables que Playwright Chromium).
+Recomendado en el TV: `BROWSER_CHANNEL=chrome` (seek y carga más estables que Playwright Chromium). El launch incluye mitigación de flags de automatización de Playwright (ver abajo).
+
+## Problemas conocidos — video corta ~40–45 s
+
+Síntoma: YouTube se congela ~44 s aunque la duración en la PWA sea larga; no siempre hace falta usar el seek.
+
+| Causa | Qué hacer |
+|-------|-----------|
+| uBO / adblock (`LOAD_EXTENSIONS` o extensión en el perfil) | `LOAD_EXTENSIONS=false`, sin bloqueadores en el TV — [extensions/README.md](./extensions/README.md) |
+| Playwright marca Chrome como automatizado (`--enable-automation`, `navigator.webdriver`) | Usá `BROWSER_CHANNEL=chrome` con la versión actual del repo (`src/browser.ts` quita esos flags). Reiniciá `pnpm start`. |
+
+Postmortem y diagnóstico (logs, qué se descartó): [docs/youtube-playback-cutoff.md](./docs/youtube-playback-cutoff.md).
 
 ## Roadmap
 

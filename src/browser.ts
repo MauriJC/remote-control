@@ -56,8 +56,14 @@ export async function launchTvBrowser(
     launchOptions.channel = opts.browserChannel;
     console.log(`Using installed browser channel: ${opts.browserChannel}`);
     if (isBrandedChannel(opts.browserChannel)) {
-      launchOptions.ignoreDefaultArgs = ["--disable-extensions", "--no-sandbox"];
+      // YouTube may stop ~40–45s if automation flags stay on. See docs/youtube-playback-cutoff.md.
+      launchOptions.ignoreDefaultArgs = [
+        "--disable-extensions",
+        "--no-sandbox",
+        "--enable-automation",
+      ];
       launchOptions.chromiumSandbox = true;
+      args.push("--disable-blink-features=AutomationControlled");
     }
   } else {
     console.log(
@@ -75,6 +81,14 @@ export async function launchTvBrowser(
     opts.userDataDir,
     launchOptions,
   );
+
+  if (isBrandedChannel(opts.browserChannel)) {
+    await context.addInitScript(() => {
+      Object.defineProperty(navigator, "webdriver", {
+        get: () => undefined,
+      });
+    });
+  }
 
   const pages = context.pages();
   const page = pages[0] ?? (await context.newPage());

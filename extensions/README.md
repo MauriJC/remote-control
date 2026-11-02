@@ -71,6 +71,8 @@ En consola deberías ver: `Loading extensions: [ '...' ]`. Verificá en `chrome:
 
 **Confirmado:** uBO Lite cargada con **`LOAD_EXTENSIONS=true`** (`--load-extension`) en **Playwright Chromium** suele romper el video a **~40–45 s** (*“Se produjo un error…”*, `net::ERR_BLOCKED_BY_CLIENT`). El remote control **no** es la causa; el bloqueador corta requests que el player necesita.
 
+**Otra causa distinta (sin uBO):** Chrome lanzado por Playwright con **`BROWSER_CHANNEL=chrome`** también podía cortar ~44 s por detección de automatización (`--enable-automation`). El proyecto mitiga eso en `src/browser.ts`. Detalle: [docs/youtube-playback-cutoff.md](../docs/youtube-playback-cutoff.md).
+
 **Recomendado para control remoto + YouTube:**
 
 | Objetivo | Config |
