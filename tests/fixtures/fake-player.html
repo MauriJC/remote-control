@@ -58,6 +58,21 @@
         window.__setAdShowing = (value) => {
           player.classList.toggle("ad-showing", value);
         };
+        window.__skipClicks = 0;
+        window.__setSkipButton = (visible) => {
+          const existing = player.querySelector(".ytp-skip-ad-button");
+          if (existing) existing.remove();
+          window.__skipClicks = 0;
+          if (!visible) return;
+          const btn = document.createElement("button");
+          btn.className = "ytp-skip-ad-button";
+          btn.type = "button";
+          btn.textContent = "Skip";
+          btn.addEventListener("click", () => {
+            window.__skipClicks += 1;
+          });
+          player.appendChild(btn);
+        };
       })();
     </script>
   </body>

@@ -26,6 +26,7 @@ export type PlayerState = {
   duration: number;
   volume: number;
   adPlaying: boolean;
+  adSkippable: boolean;
   quality: string;
   error?: string;
 };
@@ -45,6 +46,7 @@ export const emptyPlayerState = (
   duration: 0,
   volume: 50,
   adPlaying: false,
+  adSkippable: false,
   quality: "480p",
   ...overrides,
 });

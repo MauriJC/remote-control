@@ -65,9 +65,11 @@ describe("YouTubeAdapter", () => {
       const w = window as unknown as {
         __setPlaying: (v: boolean) => void;
         __setAdShowing: (v: boolean) => void;
+        __setSkipButton: (v: boolean) => void;
       };
       w.__setPlaying(true);
       w.__setAdShowing(false);
+      w.__setSkipButton(false);
     });
   });
 
@@ -84,6 +86,7 @@ describe("YouTubeAdapter", () => {
     expect(state.duration).toBe(180);
     expect(state.volume).toBe(42);
     expect(state.adPlaying).toBe(false);
+    expect(state.adSkippable).toBe(false);
   });
 
   it("sets adPlaying when the fixture has ad-showing", async () => {
@@ -97,6 +100,7 @@ describe("YouTubeAdapter", () => {
     await adapter.refreshState();
 
     expect(adapter.readState().adPlaying).toBe(true);
+    expect(adapter.readState().adSkippable).toBe(false);
   });
 
   it("reflects pause when the fixture player changes", async () => {
@@ -122,6 +126,7 @@ describe("YouTubeAdapter", () => {
       duration: 100,
       volume: 50,
       adPlaying: false,
+      adSkippable: false,
       quality: "720p",
     };
 
@@ -187,6 +192,20 @@ describe("YouTubeAdapter", () => {
     await adapter.refreshState();
 
     expect(adapter.readState().error).toMatch(/movie_player not found/i);
+    expect(adapter.readState().adSkippable).toBe(false);
     await blank.close();
+  });
+
+  it("sets adSkippable when the fixture has a visible skip button", async () => {
+    await page.evaluate(() => {
+      (window as unknown as { __setSkipButton: (v: boolean) => void }).__setSkipButton(
+        true,
+      );
+    });
+
+    const adapter = new YouTubeAdapter(page);
+    await adapter.refreshState();
+
+    expect(adapter.readState().adSkippable).toBe(true);
   });
 });

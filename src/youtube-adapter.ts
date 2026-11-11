@@ -6,7 +6,10 @@ import {
   parseYouTubeWatchInput,
   type PlayerState,
 } from "./protocol.js";
-import { isYouTubeAdShowing } from "./youtube-ad-state.js";
+import {
+  findYouTubeSkipButton,
+  isYouTubeAdShowing,
+} from "./youtube-ad-state.js";
 
 type ReadResult = PlayerState | { error: string };
 
@@ -92,15 +95,20 @@ export class YouTubeAdapter implements PlayerAdapter {
     await this.withPage(async () => {
       try {
         const adDetectSource = isYouTubeAdShowing.toString();
+        const findSkipSource = findYouTubeSkipButton.toString();
         const result = await this.page.evaluate(
           ({
             detectSource,
+            findSkipSource,
           }): ReadResult & {
             ytpErrorText?: string;
           } => {
           const detectAd = eval(`(${detectSource})`) as (
             player: HTMLElement | null,
           ) => boolean;
+          const findSkip = eval(`(${findSkipSource})`) as (
+            player: HTMLElement | null,
+          ) => HTMLElement | null;
           const el = document.getElementById("movie_player") as
             | (HTMLElement & {
                 getVideoData?: () => { video_id?: string; title?: string };
@@ -139,6 +147,7 @@ export class YouTubeAdapter implements PlayerAdapter {
           const playing = state === 1; // YT_PLAYING
           const buffering = state === 3; // YT_BUFFERING
           const adPlaying = detectAd(el);
+          const adSkippable = findSkip(el) !== null;
 
           return {
             playing,
@@ -149,11 +158,12 @@ export class YouTubeAdapter implements PlayerAdapter {
             duration: Math.floor(el.getDuration?.() ?? 0),
             volume: el.isMuted?.() ? 0 : Math.round(el.getVolume?.() ?? 0),
             adPlaying,
+            adSkippable,
             quality: el.getPlaybackQuality?.() ?? "",
             ytpErrorText: ytpErrorText || undefined,
           };
         },
-          { detectSource: adDetectSource },
+          { detectSource: adDetectSource, findSkipSource },
         );
 
         if ("error" in result) {
