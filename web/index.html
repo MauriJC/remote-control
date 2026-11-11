@@ -11,7 +11,7 @@
       THESIS: El teléfono es el puesto de proyección. El tiempo ocupa el pozo ámbar y la marcha es una tecla grabada. Rehúsa el player redondo con barra roja.
       OWN-WORLD: Metal #272725, gel #CD961F, papel #B6A68D, tinta #1D1918. Contador en grotesca condensada tabular. El parte en mecanográfica. Controles grabados, sin píldoras.
       STORY: Quien mira en el monitor conecta, lee el tiempo, pulsa marcha o pausa, mueve volumen y deja el JSON a la vista.
-      FIRST VIEWPORT: Franja con lámpara y estado. Pozo ámbar con el tiempo monumental y la duración a la derecha. Tira de título. Tecla de marcha. Banda de volumen. Marca de pantalla completa. Hoja con token, abrir en el TV y el JSON.
+      FIRST VIEWPORT: Franja con lámpara y estado. Pozo ámbar con el tiempo monumental y la duración a la derecha. Tira de título. Tecla de marcha. Banda de volumen. Tecla chica de pantalla completa. Hoja con token, abrir en el TV y el JSON.
       FORM: Cabina de proyección, tercer sistema de la lista, semilla 776422b5. Composición La mesa.
       FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
     -->
@@ -42,7 +42,7 @@
         <input id="volume" type="range" min="0" max="100" value="50" disabled />
       </label>
 
-      <button class="mark-btn" id="fullscreen" type="button" disabled>Pantalla completa</button>
+      <button class="transport key-secondary" id="fullscreen" type="button" disabled>Pantalla completa</button>
 
       <section class="bench">
         <label>
@@ -51,6 +51,7 @@
         </label>
         <label>
           Abrir en el TV
+          <span class="format">youtube.com/watch?v=… o el id</span>
           <span class="open-row">
             <input
               id="watch-url"
@@ -60,7 +61,7 @@
               autocomplete="off"
               disabled
             />
-            <button id="open-url" type="button" disabled>Abrir</button>
+            <button class="stamp" id="open-url" type="button" disabled>Abrir</button>
           </span>
         </label>
         <pre id="state" aria-live="polite">{}</pre>

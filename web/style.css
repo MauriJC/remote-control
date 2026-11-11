@@ -153,7 +153,6 @@ body {
 }
 
 .transport,
-.mark-btn,
 .bench button {
   font: inherit;
   color: inherit;
@@ -188,6 +187,12 @@ body {
   min-height: 3.25rem;
 }
 
+.transport.key-secondary {
+  min-height: 2.55rem;
+  font-size: 1.05rem;
+  letter-spacing: 0.16em;
+}
+
 .fader {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -200,19 +205,6 @@ body {
 
 .fader input {
   grid-column: 1 / -1;
-}
-
-.mark-btn {
-  appearance: none;
-  border: 0;
-  background: transparent;
-  padding: 0.35rem 0;
-  font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
-  font-size: 1rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--plate);
 }
 
 .bench {
@@ -250,6 +242,21 @@ body {
   color: #5c4e38;
 }
 
+.bench input:focus {
+  border-bottom-width: 2px;
+}
+
+.bench input:focus::placeholder {
+  color: transparent;
+}
+
+.bench .format {
+  font-size: 0.78rem;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #5c4e38;
+}
+
 .open-row {
   display: flex;
   align-items: end;
@@ -261,15 +268,29 @@ body {
   min-width: 0;
 }
 
-.bench button {
+.bench button.stamp {
+  appearance: none;
   flex: none;
-  border: 0;
-  border-bottom: 1px solid var(--ink);
-  background: transparent;
-  padding: 0.35rem 0;
-  font-size: 0.95rem;
-  letter-spacing: 0.08em;
+  align-self: end;
+  min-height: 2.5rem;
+  padding: 0 0.85rem;
+  border: 1px solid #111;
+  background: var(--ink);
+  color: var(--plate);
+  font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.2),
+    0 2px 0 #111;
+  transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bench button.stamp:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.55);
 }
 
 .bench pre {
@@ -363,7 +384,8 @@ input[type="range"]::-moz-range-thumb {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .transport {
+  .transport,
+  .stamp {
     transition: none;
   }
 }
