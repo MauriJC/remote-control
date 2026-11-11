@@ -35,6 +35,10 @@ export class FakeAdapter implements PlayerAdapter {
     /* no-op in RAM simulator */
   }
 
+  async skipAd(): Promise<void> {
+    throw new Error("No se puede saltar el anuncio");
+  }
+
   async openWatchUrl(input: string): Promise<void> {
     const parsed = parseYouTubeWatchInput(input);
     if (!parsed) {

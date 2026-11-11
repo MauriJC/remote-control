@@ -208,4 +208,27 @@ describe("YouTubeAdapter", () => {
 
     expect(adapter.readState().adSkippable).toBe(true);
   });
+
+  it("skipAd clicks the fixture skip button", async () => {
+    await page.evaluate(() => {
+      (window as unknown as { __setSkipButton: (v: boolean) => void }).__setSkipButton(
+        true,
+      );
+    });
+
+    const adapter = new YouTubeAdapter(page);
+    await adapter.skipAd();
+
+    const clicks = await page.evaluate(
+      () => (window as unknown as { __skipClicks: number }).__skipClicks,
+    );
+    expect(clicks).toBe(1);
+  });
+
+  it("skipAd rejects when the fixture has no skip button", async () => {
+    const adapter = new YouTubeAdapter(page);
+    await expect(adapter.skipAd()).rejects.toThrow(
+      "No se puede saltar el anuncio",
+    );
+  });
 });

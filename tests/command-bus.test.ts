@@ -29,6 +29,7 @@ describe("CommandBus", () => {
       setVolume: async () => {},
       enterFullscreen: async () => {},
       openWatchUrl: async () => {},
+      skipAd: async () => {},
       readState: stubReadState,
     };
 
@@ -61,6 +62,7 @@ describe("CommandBus", () => {
       setVolume: async () => {},
       enterFullscreen: async () => {},
       openWatchUrl: async () => {},
+      skipAd: async () => {},
       readState: stubReadState,
     };
 
@@ -87,6 +89,7 @@ describe("CommandBus", () => {
       setVolume: async () => {},
       enterFullscreen: async () => {},
       openWatchUrl: async () => {},
+      skipAd: async () => {},
       readState: stubReadState,
     };
 
@@ -128,6 +131,7 @@ describe("CommandBus", () => {
       setVolume: async () => {},
       enterFullscreen: async () => {},
       openWatchUrl: async () => {},
+      skipAd: async () => {},
       readState: stubReadState,
     };
 
@@ -155,6 +159,7 @@ describe("CommandBus", () => {
       setVolume: async () => {},
       enterFullscreen: async () => {},
       openWatchUrl: async () => {},
+      skipAd: async () => {},
       readState: stubReadState,
     };
     const bus = new CommandBus(adapter);
@@ -175,6 +180,7 @@ describe("CommandBus", () => {
       setVolume: async () => {},
       enterFullscreen: async () => {},
       openWatchUrl: async () => {},
+      skipAd: async () => {},
       readState: stubReadState,
     };
 
@@ -201,6 +207,7 @@ describe("CommandBus", () => {
       openWatchUrl: async (url) => {
         opened = url;
       },
+      skipAd: async () => {},
       readState: stubReadState,
     };
 
@@ -214,6 +221,59 @@ describe("CommandBus", () => {
 
     expect(result).toEqual({ ok: true });
     expect(opened).toContain("dQw4w9WgXcQ");
+  });
+
+  it("dispatches skipAd to the adapter", async () => {
+    let calls = 0;
+    const adapter: PlayerAdapter = {
+      play: async () => {},
+      pause: async () => {},
+      seekTo: async () => {},
+      setVolume: async () => {},
+      enterFullscreen: async () => {},
+      openWatchUrl: async () => {},
+      skipAd: async () => {
+        calls += 1;
+      },
+      readState: stubReadState,
+    };
+
+    const bus = new CommandBus(adapter);
+    const result = await bus.dispatch({
+      type: "command",
+      id: "skip-1",
+      name: "skipAd",
+    });
+
+    expect(result).toEqual({ ok: true });
+    expect(calls).toBe(1);
+  });
+
+  it("returns the adapter error when skipAd throws", async () => {
+    const adapter: PlayerAdapter = {
+      play: async () => {},
+      pause: async () => {},
+      seekTo: async () => {},
+      setVolume: async () => {},
+      enterFullscreen: async () => {},
+      openWatchUrl: async () => {},
+      skipAd: async () => {
+        throw new Error("No se puede saltar el anuncio");
+      },
+      readState: stubReadState,
+    };
+
+    const bus = new CommandBus(adapter);
+    const result = await bus.dispatch({
+      type: "command",
+      id: "skip-2",
+      name: "skipAd",
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      error: "No se puede saltar el anuncio",
+    });
   });
 });
 

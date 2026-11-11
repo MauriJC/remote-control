@@ -291,6 +291,41 @@ export class YouTubeAdapter implements PlayerAdapter {
     });
   }
 
+  async skipAd(): Promise<void> {
+    await this.withPage(async () => {
+      try {
+        const findSkipSource = findYouTubeSkipButton.toString();
+        const err = await this.page.evaluate((source) => {
+          const findSkip = eval(`(${source})`) as (
+            player: HTMLElement | null,
+          ) => HTMLElement | null;
+          const player = document.getElementById("movie_player");
+          const button = findSkip(player);
+          if (!button) {
+            return "No se puede saltar el anuncio";
+          }
+          button.click();
+          return null;
+        }, findSkipSource);
+        if (err) {
+          throw new Error(err);
+        }
+      } catch (err) {
+        if (
+          err instanceof Error &&
+          err.message === "No se puede saltar el anuncio"
+        ) {
+          throw err;
+        }
+        if (isTransientPageError(err)) {
+          throw new Error("YouTube page is loading, try again");
+        }
+        throw err;
+      }
+    });
+    await this.refreshState();
+  }
+
   private async applyPlaybackQualityCap(capPx: number): Promise<void> {
     const label = capToYouTubeQualityLabel(capPx);
     await this.page.evaluate((quality) => {

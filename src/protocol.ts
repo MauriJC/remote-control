@@ -8,6 +8,7 @@ export type Command =
   | (CommandBase & { name: "seek"; seconds: number })
   | (CommandBase & { name: "setVolume"; volume: number })
   | (CommandBase & { name: "fullscreen" })
+  | (CommandBase & { name: "skipAd" })
   | (CommandBase & { name: "openUrl"; url: string });
 
 export type Ack = {
