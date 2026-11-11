@@ -219,10 +219,15 @@ describe("YouTubeAdapter", () => {
     const adapter = new YouTubeAdapter(page);
     await adapter.skipAd();
 
-    const clicks = await page.evaluate(
-      () => (window as unknown as { __skipClicks: number }).__skipClicks,
-    );
-    expect(clicks).toBe(1);
+    const result = await page.evaluate(() => {
+      const w = window as unknown as {
+        __skipClicks: number;
+        __skipTrusted: boolean;
+      };
+      return { clicks: w.__skipClicks, trusted: w.__skipTrusted };
+    });
+    expect(result.clicks).toBe(1);
+    expect(result.trusted).toBe(true);
   });
 
   it("skipAd rejects when the fixture has no skip button", async () => {

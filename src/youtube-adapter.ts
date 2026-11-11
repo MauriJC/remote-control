@@ -295,21 +295,25 @@ export class YouTubeAdapter implements PlayerAdapter {
     await this.withPage(async () => {
       try {
         const findSkipSource = findYouTubeSkipButton.toString();
-        const err = await this.page.evaluate((source) => {
+        const marked = await this.page.evaluate((source) => {
           const findSkip = eval(`(${source})`) as (
             player: HTMLElement | null,
           ) => HTMLElement | null;
+          document
+            .querySelector("[data-remote-skip]")
+            ?.removeAttribute("data-remote-skip");
           const player = document.getElementById("movie_player");
           const button = findSkip(player);
           if (!button) {
-            return "No se puede saltar el anuncio";
+            return false;
           }
-          button.click();
-          return null;
+          button.setAttribute("data-remote-skip", "1");
+          return true;
         }, findSkipSource);
-        if (err) {
-          throw new Error(err);
+        if (!marked) {
+          throw new Error("No se puede saltar el anuncio");
         }
+        await this.page.locator("[data-remote-skip='1']").click({ timeout: 5000 });
       } catch (err) {
         if (
           err instanceof Error &&
