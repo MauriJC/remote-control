@@ -62,7 +62,7 @@ Con la PWA conectada y un video en reproducción:
 
 Volvé a buildar la PWA tras cambios en `web/`: `pnpm build:web`.
 
-Durante **anuncios**, la PWA muestra `· anuncio` en el tiempo y deshabilita el seek (el poll lee `adPlaying` del DOM de YouTube, sin uBlock).
+Durante **anuncios**, la PWA muestra `· anuncio` en el tiempo y deshabilita el seek (el poll lee `adPlaying` del DOM de YouTube, sin uBlock). **Saltar** aparece solo cuando YouTube ya dejó saltar el anuncio.
 
 ## Etapa 6 — Abrir video desde el teléfono
 

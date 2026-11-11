@@ -24,11 +24,11 @@ PWA en el teléfono, servidor Node en la netbook, Chromium con YouTube en el mon
 
 ## Capabilities and Constraints
 
-Comandos: play, pause, seek, setVolume, fullscreen, openUrl. Estado en vivo: playing, buffering, title, videoId, currentTime, duration, volume, adPlaying, quality, error. No hay miniatura. Durante un anuncio el seek se deshabilita.
+Comandos: play, pause, seek, setVolume, fullscreen, openUrl, skipAd. Estado en vivo: playing, buffering, title, videoId, currentTime, duration, volume, adPlaying, adSkippable, quality, error. No hay miniatura. Durante un anuncio el seek se deshabilita. Saltar aparece solo cuando adSkippable es verdadero.
 
 Interfaz en español. Un solo control de play/pausa según `playing`. Token y “Abrir en el TV” no ocupan la zona del pulgar; viven con el diagnóstico. El JSON permanece visible en monospace.
 
-Stack fijo: TypeScript y Vite, sin React, Vue, Tailwind ni app nativa. El protocolo no cambia.
+Stack fijo: TypeScript y Vite, sin React, Vue, Tailwind ni app nativa.
 
 ## Evidence on Hand
 
