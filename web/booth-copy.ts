@@ -18,5 +18,5 @@ export function statusLabel(text: string): string {
 
 export function transportLabel(connected: boolean, playing: boolean): string {
   if (!connected) return "Conectar";
-  return playing ? "Pausa" : "Marcha";
+  return playing ? "Pause" : "Play";
 }
