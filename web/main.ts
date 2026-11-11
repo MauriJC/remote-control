@@ -6,6 +6,7 @@ const statusEl = document.querySelector<HTMLParagraphElement>("#status")!;
 const jewel = document.querySelector<HTMLSpanElement>("#jewel")!;
 const stateEl = document.querySelector<HTMLPreElement>("#state")!;
 const transportBtn = document.querySelector<HTMLButtonElement>("#transport")!;
+const skipAdBtn = document.querySelector<HTMLButtonElement>("#skip-ad")!;
 const fullscreenBtn = document.querySelector<HTMLButtonElement>("#fullscreen")!;
 const watchUrlInput = document.querySelector<HTMLInputElement>("#watch-url")!;
 const openUrlBtn = document.querySelector<HTMLButtonElement>("#open-url")!;
@@ -40,12 +41,17 @@ function renderTransport(): void {
   transportBtn.textContent = transportLabel(client.connected, playing);
 }
 
-function setPlaybackControlsEnabled(connected: boolean, adPlaying = false): void {
+function setPlaybackControlsEnabled(
+  connected: boolean,
+  adPlaying = false,
+  adSkippable = false,
+): void {
   fullscreenBtn.disabled = !connected;
   seekInput.disabled = !connected || adPlaying;
   volumeInput.disabled = !connected;
   watchUrlInput.disabled = !connected;
   openUrlBtn.disabled = !connected;
+  skipAdBtn.hidden = !connected || !adSkippable;
   well.classList.toggle("is-ad", adPlaying);
   renderTransport();
 }
@@ -95,7 +101,7 @@ const client = new RemoteClient(undefined, {
 
     if (client.connected) {
       showStatus("Connected", "on");
-      setPlaybackControlsEnabled(true, state.adPlaying);
+      setPlaybackControlsEnabled(true, state.adPlaying, state.adSkippable);
     }
   },
 });
@@ -118,6 +124,10 @@ transportBtn.addEventListener("click", () => {
     return;
   }
   client.sendCommand({ name: playing ? "pause" : "play" });
+});
+
+skipAdBtn.addEventListener("click", () => {
+  client.sendCommand({ name: "skipAd" });
 });
 
 openUrlBtn.addEventListener("click", () => {

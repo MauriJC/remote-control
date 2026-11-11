@@ -11,7 +11,8 @@ export type OutgoingCommand =
   | { name: "seek"; seconds: number }
   | { name: "setVolume"; volume: number }
   | { name: "fullscreen" }
-  | { name: "openUrl"; url: string };
+  | { name: "openUrl"; url: string }
+  | { name: "skipAd" };
 
 type WebSocketFactory = (url: string) => WebSocket;
 
